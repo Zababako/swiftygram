@@ -12,29 +12,49 @@ final class ToolsTests: XCTestCase {
 
     func test_Environmental_variable_is_loaded_from_environment() {
 
-        setenv("RANDOM_VARIABLE", "abc", 1)
-
-        guard let value = readFromEnvironment("RANDOM_VARIABLE") else {
-            XCTFail("Variable is read from environment")
-            return
-        }
-
-        XCTAssertEqual(value, "abc")
+        prepareEnvVar(key: "RANDOM_VARIABLE", value: "abc")
+        XCTAssertEqual(readFromEnvironment("RANDOM_VARIABLE"), "abc")
     }
 
     func test_Environmental_variable_is_loaded_from_file() {
+        
+        prepareFile(key: "test", value: "File content")
+        XCTAssertEqual(readFromEnvironment("test"), "File content")
+    }
 
-        do {
-            try "abcd".write(to: URL(string:"file://test")!, atomically: true, encoding: .utf8)
-        } catch {
-            XCTFail("Test setup - \(error)")
-        }
+    func test_Environmental_variable_tries_to_load_value_from_environment_first_and_then_from_file() {
 
-        guard let value = readFromEnvironment("test") else {
-            XCTFail("Variable is read from file")
-            return
-        }
+        prepareEnvVar(key: "direct_order", value: "ab1")
+        prepareFile(key: "direct_order", value: "ab2")
 
-        XCTAssertEqual(value, "abcd")
+        XCTAssertEqual(readFromEnvironment("direct_order"), "ab1")
+
+        prepareFile(key: "revert_order", value: "ab3")
+        prepareEnvVar(key: "revert_order", value: "ab4")
+
+        XCTAssertEqual(readFromEnvironment("revert_order"), "ab4")
+    }
+}
+
+private func prepareEnvVar(key: String, value: String) {
+    setenv(key, value, 1)
+}
+
+private func prepareFile(key: String, value: String) {
+
+    guard let pwd = ProcessInfo.processInfo.environment["PWD"] else {
+        XCTFail("Failed to determine current path")
+        return
+    }
+
+    guard let testFileURL = URL(string: "file://\(pwd)/\(key)") else {
+        XCTFail("Failed to convert path to URL")
+        return
+    }
+
+    do {
+        try value.write(to: testFileURL, atomically: true, encoding: .utf8)
+    } catch {
+        XCTFail("Test setup error - couldn't write content to file: \(error)")
     }
 }
