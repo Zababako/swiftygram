@@ -5,25 +5,6 @@
 import Foundation
 
 
-public struct APIError: Error {
-    let text: String?
-    let code: Int?
-}
-
-extension APIError {
-
-    init() {
-        self.text = nil
-        self.code = nil
-    }
-
-    init(_ text: String) {
-        self.text = text
-        self.code = nil
-    }
-}
-
-
 protocol API {
     func send<T: Decodable>(request: URLRequest, onComplete: @escaping (Result<T>) -> Void)
 }
@@ -34,6 +15,7 @@ private struct Response<T: Decodable>: Decodable {
     let description: String?
     let errorCode:   Int?
 }
+
 
 final internal class APIClient: API {
 
