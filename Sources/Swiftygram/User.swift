@@ -2,7 +2,9 @@
 // Created by Zap on 07.08.2018.
 //
 
-import Foundation
+
+/// This object represents a Telegram user or bot
+/// https://core.telegram.org/bots/api#user
 
 public struct User: Codable {
 
