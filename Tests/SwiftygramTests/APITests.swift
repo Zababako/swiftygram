@@ -47,7 +47,29 @@ final class APITests: XCTestCase {
     }
 
     func test_API_parses_success() {
-        XCTFail("TODO: Implement")
+
+        guard let token = readFromEnvironment("TEST_BOT_TOKEN") else {
+            XCTFail("Test environment is not configured, missing value for 'TEST_BOT_TOKEN'")
+            return
+        }
+
+        let url = URL(string: "https://api.telegram.org/bot\(token)/getMe")!
+        let request = URLRequest(url: url)
+
+        let requestFinishes = expectation(description: "Request sending finishes")
+
+        api.send(request: request) {
+            (result: Result<Dummy>) in
+
+            guard case .success = result else {
+                XCTFail("Request succeeds")
+                return
+            }
+
+            requestFinishes.fulfill()
+        }
+
+        waitForExpectations(timeout: 2)
     }
 }
 
