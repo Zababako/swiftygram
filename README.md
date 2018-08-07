@@ -1,3 +1,3 @@
 # Swiftygram
 
-A lightweight Telegram API client in Swift.
+A lightweight Telegram Bot API client in Swift.
