@@ -17,7 +17,7 @@ final class APITests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        api = APIClient()
+        api = APIClient(configuration: .ephemeral)
     }
 
     func test_API_parses_error() {
@@ -59,17 +59,17 @@ final class APITests: XCTestCase {
         let requestFinishes = expectation(description: "Request sending finishes")
 
         api.send(request: request) {
-            (result: Result<Dummy>) in
+            (result: Result<User>) in
+
+            requestFinishes.fulfill()
 
             guard case .success = result else {
                 XCTFail("Request succeeds")
                 return
             }
-
-            requestFinishes.fulfill()
         }
 
-        waitForExpectations(timeout: 2)
+        waitForExpectations(timeout: 10)
     }
 }
 
