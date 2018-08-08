@@ -7,7 +7,7 @@ import Foundation
 
 enum Method {
     case getMe
-    case sendMessage(to: ReceiverID, text: String)
+    case sendMessage(to: Receiver, text: String)
 }
 
 enum MethodError: Error {
@@ -17,7 +17,7 @@ enum MethodError: Error {
 
 extension Method {
 
-    func request(for token: Bot.Token, with additionalArguments: [String : Any] = [:]) throws -> URLRequest {
+    func request(for token: Token, with additionalArguments: [String : Any] = [:]) throws -> URLRequest {
 
         let url = try composeURL(with: token)
 
@@ -34,7 +34,7 @@ extension Method {
     }
 
     /// https://core.telegram.org/bots/api#making-requests
-    private func composeURL(with token: Bot.Token) throws -> URL {
+    private func composeURL(with token: Token) throws -> URL {
 
         var urlComponents = URLComponents()
         urlComponents.scheme = "https"
@@ -59,7 +59,37 @@ extension Method {
     private var coreArguments: [String : Any] {
         switch self {
         case     .getMe:                 return [:]
-        case let .sendMessage(to, text): return [ "chat_id" : to, "text" : text]
+        case let .sendMessage(to, text): return [ "chat_id" : to.value, "text" : text]
+        }
+    }
+}
+
+private extension Receiver {
+    var value: Any {
+        switch self {
+        case let .id(id):             return id
+        case let .username(username): return username
+        }
+    }
+}
+
+extension Receiver {
+    init?(value: Any) {
+
+        if let integer = value as? Int64 {
+            self = .id(integer)
+            return
+        }
+
+        guard let string = value as? String else {
+            return nil
+        }
+
+        if let intFromString = Int64(string) {
+            self = .id(intFromString)
+            return
+        } else {
+            self = .username(string)
         }
     }
 }

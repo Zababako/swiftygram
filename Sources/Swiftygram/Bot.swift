@@ -5,11 +5,27 @@
 import Foundation
 
 
+public enum Receiver {
+    case id(ReceiverID)
+    case username(String)
+}
+
 public typealias ReceiverID = Int64
 
-final class Bot {
+public protocol Bot {
+    func getMe(onComplete: @escaping (Result<User>) -> Void)
+    func send(
+        message:             String,
+        to:                  Receiver,
+        additionalArguments: [String : Any],
+        onComplete:          @escaping (Result<Message>) -> Void
+    )
+}
 
-    typealias Token = String
+public typealias Token = String
+
+
+final class SwiftyBot: Bot {
 
 
     // MARK: - Private properties
@@ -40,7 +56,7 @@ final class Bot {
 
     func send(
         message:             String,
-        to:                  ReceiverID,
+        to:                  Receiver,
         additionalArguments: [String : Any] = [:],
         onComplete:          @escaping (Result<Message>) -> Void
     ) {

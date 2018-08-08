@@ -2,12 +2,12 @@
 // Created by Zap on 07.08.2018.
 //
 
-enum Result<T>{
+public enum Result<T>{
     case success(T)
     case failure(Error)
 }
 
-extension Result {
+public extension Result {
 
     func map<U>(_ transformation: (T) -> U) -> Result<U> {
         switch self {

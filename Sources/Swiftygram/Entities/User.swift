@@ -10,7 +10,11 @@ public struct User: Decodable {
 
     public let id: ReceiverID
 
-    public let username:  String?
-    public let firstName: String?
+    public let isBot: Bool
+
+    public let firstName: String
     public let lastName:  String?
+    public let username:  String?
+
+    public let languageCode: String?
 }
