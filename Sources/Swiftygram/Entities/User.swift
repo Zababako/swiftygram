@@ -6,11 +6,9 @@
 /// This object represents a Telegram user or bot
 /// https://core.telegram.org/bots/api#user
 
-public struct User: Codable {
+public struct User: Decodable {
 
-    public typealias ID = Int64
-
-    public let id: ID
+    public let id: ReceiverID
 
     public let username:  String?
     public let firstName: String?

@@ -7,7 +7,7 @@ import Foundation
 
 enum Method {
     case getMe
-    case sendMessage(to: Chat.ID, text: String)
+    case sendMessage(to: ReceiverID, text: String)
 }
 
 enum MethodError: Error {

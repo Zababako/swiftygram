@@ -4,6 +4,9 @@
 
 import Foundation
 
+
+public typealias ReceiverID = Int64
+
 final class Bot {
 
     typealias Token = String
@@ -37,9 +40,10 @@ final class Bot {
 
     func send(
         message:             String,
-        to:                  User.ID,
+        to:                  ReceiverID,
         additionalArguments: [String : Any] = [:],
-        onComplete:          @escaping (Result<Message>) -> Void) {
+        onComplete:          @escaping (Result<Message>) -> Void
+    ) {
 
         Result.action(handler: onComplete) {
             api.send(

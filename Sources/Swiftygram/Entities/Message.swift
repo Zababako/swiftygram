@@ -5,7 +5,7 @@
 /// This object represents a message
 /// https://core.telegram.org/bots/api#message
 
-public struct Message: Codable {
+public struct Message: Decodable {
 
     public typealias ID = Int64
 

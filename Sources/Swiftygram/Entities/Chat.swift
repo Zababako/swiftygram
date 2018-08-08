@@ -6,18 +6,16 @@
 /// This object represents Chat
 /// https://core.telegram.org/bots/api#chat
 
-public struct Chat: Codable {
+public struct Chat: Decodable {
 
-    public enum `Type`: String, Codable {
+    public enum `Type`: String, Decodable {
         case `private`
         case group
         case supergroup
         case channel
     }
 
-    public typealias ID = Int64
-
-    public let id: ID
+    public let id:   ReceiverID
     public let type: `Type`
 
     public let title:     String?
