@@ -73,26 +73,3 @@ private extension Receiver {
     }
 }
 
-extension Receiver {
-    init?(value: Any) {
-
-        if let integer = value as? Int64 {
-            self = .id(integer)
-            return
-        }
-
-        guard let string = value as? String else {
-            return nil
-        }
-
-        if let intFromString = Int64(string) {
-            self = .id(intFromString)
-            return
-        } else {
-            self = .username(string)
-        }
-    }
-}
-
-
-

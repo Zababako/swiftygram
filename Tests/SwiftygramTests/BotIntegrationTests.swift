@@ -121,6 +121,7 @@ final class BotIntegrationTests: XCTestCase {
 
         waitForExpectations(timeout: 3)
     }
+	
     func test_Bot_receives_message() {
         XCTFail("TODO: Implement")
     }

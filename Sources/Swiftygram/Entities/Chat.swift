@@ -15,7 +15,7 @@ public struct Chat: Decodable {
         case channel
     }
 
-    public let id:   ReceiverID
+    public let id:   Receiver.ID
     public let type: `Type`
 
     public let title:     String?

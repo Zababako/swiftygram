@@ -5,13 +5,6 @@
 import Foundation
 
 
-public enum Receiver {
-    case id(ReceiverID)
-    case username(String)
-}
-
-public typealias ReceiverID = Int64
-
 public protocol Bot {
     func getMe(onComplete: @escaping (Result<User>) -> Void)
     func send(

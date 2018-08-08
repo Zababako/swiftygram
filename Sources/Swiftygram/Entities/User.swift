@@ -8,7 +8,7 @@
 
 public struct User: Decodable {
 
-    public let id: ReceiverID
+    public let id: Receiver.ID
 
     public let isBot: Bool
 
