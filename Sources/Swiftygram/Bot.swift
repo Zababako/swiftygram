@@ -22,17 +22,10 @@ public protocol Bot {
     func subscribeToUpdates(handler: @escaping (Update) -> Void) -> SubscriptionHolder
 }
 
-private func ==(lhs: Holder, rhs: Holder) -> Bool {
-    return lhs === rhs
-}
 
 
 
-private class Holder: SubscriptionHolder, Hashable {
-    var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
-    }
-}
+private class Holder: SubscriptionHolder {}
 
 final class SwiftyBot: Bot {
 
@@ -42,7 +35,7 @@ final class SwiftyBot: Bot {
     private let api:   API
     private let token: Token
 
-    private var subscriptionsRegistry: [Holder : (Update) -> Void] = [:]
+    private var subscriptionsRegistry: [WeakBox<Holder> : (Update) -> Void] = [:]
 
 
     // MARK: - Initialization / Deinitialization
@@ -57,6 +50,7 @@ final class SwiftyBot: Bot {
 
     func subscribeToUpdates(handler: @escaping (Update) -> Void) -> SubscriptionHolder {
 
+        // TODO: implement
         return Holder()
     }
 
