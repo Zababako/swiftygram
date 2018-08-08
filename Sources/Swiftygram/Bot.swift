@@ -5,7 +5,12 @@
 import Foundation
 
 
+public typealias Token = String
+
+public protocol SubscriptionHolder: AnyObject {}
+
 public protocol Bot {
+
     func getMe(onComplete: @escaping (Result<User>) -> Void)
     func send(
         message:             String,
@@ -13,18 +18,31 @@ public protocol Bot {
         additionalArguments: [String : Any],
         onComplete:          @escaping (Result<Message>) -> Void
     )
+
+    func subscribeToUpdates(handler: @escaping (Update) -> Void) -> SubscriptionHolder
 }
 
-public typealias Token = String
+private func ==(lhs: Holder, rhs: Holder) -> Bool {
+    return lhs === rhs
+}
 
+
+
+private class Holder: SubscriptionHolder, Hashable {
+    var hashValue: Int {
+        return ObjectIdentifier(self).hashValue
+    }
+}
 
 final class SwiftyBot: Bot {
 
 
     // MARK: - Private properties
 
-    let api: API
-    let token: Token
+    private let api:   API
+    private let token: Token
+
+    private var subscriptionsRegistry: [Holder : (Update) -> Void] = [:]
 
 
     // MARK: - Initialization / Deinitialization
@@ -36,6 +54,11 @@ final class SwiftyBot: Bot {
 
 
     // MARK: - Bot
+
+    func subscribeToUpdates(handler: @escaping (Update) -> Void) -> SubscriptionHolder {
+
+        return Holder()
+    }
 
     func getMe(onComplete: @escaping (Result<User>) -> Void) {
 
@@ -56,7 +79,8 @@ final class SwiftyBot: Bot {
 
         Result.action(handler: onComplete) {
             api.send(
-                request: try Method.sendMessage(to: to, text: message).request(for: token),
+                request: try Method.sendMessage(to: to, text: message)
+                                   .request(for: token, with: additionalArguments),
                 onComplete: $0
             )
         }
