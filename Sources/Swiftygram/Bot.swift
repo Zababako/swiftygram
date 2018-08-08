@@ -27,11 +27,11 @@ final class Bot {
 
     func getMe(onComplete: @escaping (Result<User>) -> Void) {
 
-        do {
-            let request = try Method.getMe.request(for: token)
-            api.send(request: request, onComplete: onComplete)
-        } catch {
-            onComplete(.failure(error))
+        Result.action(handler: onComplete) {
+            api.send(
+                request: try Method.getMe.request(for: token),
+                onComplete: $0
+            )
         }
     }
 
@@ -41,12 +41,11 @@ final class Bot {
         additionalArguments: [String : Any] = [:],
         onComplete:          @escaping (Result<Message>) -> Void) {
 
-        do {
-            let request = try Method.sendMessage(to: to, text: message).request(for: token)
-            api.send(request: request, onComplete: onComplete)
-
-        } catch {
-            onComplete(.failure(error))
+        Result.action(handler: onComplete) {
+            api.send(
+                request: try Method.sendMessage(to: to, text: message).request(for: token),
+                onComplete: $0
+            )
         }
     }
 }

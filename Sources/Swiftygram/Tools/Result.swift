@@ -15,5 +15,27 @@ extension Result {
         case .success(let x):     return Result<U>.success(transformation(x))
         }
     }
+
+    static func action(
+        handler: @escaping (Result<T>) -> Void,
+        action: (@escaping (Result<T>) -> Void) throws -> Void
+    ) {
+        do {
+            try action(handler)
+        } catch {
+            handler(.failure(error))
+        }
+    }
+
+    static func action(
+        handler: @escaping (Result<T>) -> Void,
+        action: () throws -> T
+    ) {
+        do {
+            handler(.success(try action()))
+        } catch {
+            handler(.failure(error))
+        }
+    }
 }
 

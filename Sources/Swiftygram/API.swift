@@ -48,7 +48,7 @@ final internal class APIClient: API {
             [decoder]
             (possibleData, possibleResponse, possibleError) in
 
-            do {
+            Result.action(handler: onComplete) {
 
                 if let error = possibleError { throw error }
 
@@ -60,11 +60,8 @@ final internal class APIClient: API {
                     throw APIError(text: response.description, code: response.errorCode)
                 }
 
-                onComplete(.success(result))
-            } catch {
-                onComplete(.failure(error))
+                return result
             }
-
         }
 
         task.resume()
