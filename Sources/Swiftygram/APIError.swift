@@ -4,7 +4,8 @@
 
 import Foundation
 
-public struct APIError: Error {
+public struct APIError: Error, Equatable {
+
     let text: String?
     let code: Int?
 }

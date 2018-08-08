@@ -8,9 +8,41 @@ import XCTest
 @testable import Swiftygram
 
 
+final class APIMock: API {
+
+    var t_storage: [URLRequest : Result<Any>] = [:]
+
+    func send<T: Decodable>(request: URLRequest, onComplete: @escaping (Result<T>) -> Void) {
+
+        guard let preparedResult = t_storage[request] else {
+            XCTFail("Test preparation - result for: \(request) is prepared")
+            onComplete(.failure(TestError.failedPreparation))
+            return
+        }
+
+        guard case .success(let object) = preparedResult else {
+            onComplete(preparedResult.map { $0 as! T})
+            return
+        }
+
+        guard let castedObject = object as? T else {
+            XCTFail("Test preparation - result for: \(request) has wrong Type")
+            onComplete(.failure(TestError.failedPreparation))
+            return
+        }
+
+        onComplete(.success(castedObject))
+    }
+}
+
+
+enum TestError: Error {
+    case failedPreparation
+}
+
 final class BotTests: XCTestCase {
 
-    var bot: Bot!
+    var bot:     Bot!
     var apiMock: APIMock!
 
     override func setUp() {
@@ -25,18 +57,44 @@ final class BotTests: XCTestCase {
 
         let requestFinishes = expectation(description: "Request finishes")
 
-        bot.botInfo {
+        bot.getMe {
             result in
 
-            XCTFail("TODO: Implement")
             requestFinishes.fulfill()
+
+            XCTFail("TODO: Implement")
         }
 
         waitForExpectations(timeout: 1)
     }
 
     func test_Bot_sends_message_to_itself() {
-        XCTFail("TODO: Implement")
+
+        let sendingFinishes = expectation(description: "Sending finishes")
+
+        bot.getMe {
+            [bot]
+            result in
+
+            guard case .success(let info) = result else {
+                XCTFail("Could get selfInfo")
+                return
+            }
+
+            bot!.send(message: "Ping", to: info.id) {
+                result in
+
+                sendingFinishes.fulfill()
+
+                guard case .success = result else {
+                    XCTFail("Could send message")
+                    return
+                }
+            }
+            XCTFail("TODO: Implement")
+        }
+
+        waitForExpectations(timeout: 5)
     }
 
     func test_Bot_receives_message() {
@@ -44,27 +102,3 @@ final class BotTests: XCTestCase {
     }
 }
 
-final class APIMock: API {
-
-    var t_storage: [URLRequest : Result<Any>] = [:]
-
-    func send<T: Decodable>(request: URLRequest, onComplete: @escaping (Result<T>) -> Void) {
-
-        guard let preparedResult = t_storage[request] else {
-            XCTFail("Test preparation - result for: \(request) is prepared")
-            return
-        }
-
-        guard case .success(let object) = preparedResult else {
-            onComplete(preparedResult.map { $0 as! T})
-            return
-        }
-
-        guard let castedObject = object as? T else {
-            XCTFail("Test preparation - result for: \(request) has wrong Type")
-            return
-        }
-
-        onComplete(.success(castedObject))
-    }
-}

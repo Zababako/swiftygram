@@ -13,7 +13,7 @@ final class MethodsTests: XCTestCase {
     func test_URL_is_composed_as_described_in_document() {
 
         do {
-            let request = try composeRequest(for: .getMe, with: "123abc")
+            let request = try Method.getMe.request(for: "123abc")
 
             guard let expectedURL = URL(string: "https://api.telegram.org/bot123abc/getMe") else {
                 XCTFail("Test preparation - expectedURL is composed")

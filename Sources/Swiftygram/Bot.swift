@@ -25,13 +25,29 @@ final class Bot {
 
     // MARK: - Bot
 
-    func botInfo(onComplete: @escaping (Result<User>) -> Void) {
+    func getMe(onComplete: @escaping (Result<User>) -> Void) {
 
         do {
-            let request = try composeRequest(for: .getMe, with: token)
+            let request = try Method.getMe.request(for: token)
             api.send(request: request, onComplete: onComplete)
         } catch {
             onComplete(.failure(error))
         }
     }
+
+    func send(
+        message:             String,
+        to:                  User.ID,
+        additionalArguments: [String : Any] = [:],
+        onComplete:          @escaping (Result<Message>) -> Void) {
+
+        do {
+            let request = try Method.sendMessage(to: to, text: message).request(for: token)
+            api.send(request: request, onComplete: onComplete)
+
+        } catch {
+            onComplete(.failure(error))
+        }
+    }
 }
+

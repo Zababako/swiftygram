@@ -10,7 +10,7 @@ import XCTest
 private struct Dummy: Codable {}
 
 
-final class APITests: XCTestCase {
+final class APIIntegrationTests: XCTestCase {
 
     private var api: APIClient!
 
@@ -30,17 +30,19 @@ final class APITests: XCTestCase {
         api.send(request: request) {
             (result: Result<Dummy>) in
 
+            requestFinishes.fulfill()
+
             guard case .failure(let error) = result else {
                 XCTFail("Request fails")
                 return
             }
 
-            guard let _ = error as? APIError else {
+            guard let apiError = error as? APIError else {
                 XCTFail("APIError is parsed")
                 return
             }
 
-            requestFinishes.fulfill()
+            XCTAssertEqual(apiError.text, "Unauthorized")
         }
 
         waitForExpectations(timeout: 2)
@@ -69,7 +71,7 @@ final class APITests: XCTestCase {
             }
         }
 
-        waitForExpectations(timeout: 10)
+        waitForExpectations(timeout: 5)
     }
 }
 

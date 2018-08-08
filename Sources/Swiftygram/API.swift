@@ -32,14 +32,6 @@ final internal class APIClient: API {
         return decoder
     }()
 
-    private let encoder: JSONEncoder = {
-
-        let decoder = JSONEncoder()
-        decoder.keyEncodingStrategy = .convertToSnakeCase
-
-        return decoder
-    }()
-
 
     // MARK: - Initialization / Deinitialization
 
