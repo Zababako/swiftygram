@@ -5,15 +5,12 @@
 import Foundation
 
 
-public enum Receiver {
+public enum Receiver: Encodable, ExpressibleByStringLiteral, ExpressibleByIntegerLiteral {
 
     public typealias ID = Int64
 
     case id(ID)
-    case username(String)
-}
-
-public extension Receiver {
+    case channelName(String)
 
     init?(value: Any) {
 
@@ -25,14 +22,44 @@ public extension Receiver {
             if let intFromString = Int64(x) {
                 self = .id(intFromString)
             } else {
-                self = .username(x)
+                self = .channelName(x)
             }
 
         default:
             return nil
         }
     }
+
+
+    // MARK: - Encodable
+
+    public func encode(to encoder: Encoder) throws {
+
+        var container = encoder.singleValueContainer()
+
+        switch self {
+        case .id(let id):
+            try container.encode(id)
+
+        case .channelName(let username):
+            try container.encode(
+                username.hasPrefix("@") ? username : ("@" + username)
+            )
+        }
+    }
+
+
+    // MARK: - ExpressibleByStringLiteral
+
+    public init(stringLiteral value: String) {
+        self = .channelName(value)
+    }
+
+
+    // MARK: - ExpressibleByIntegerLiteral
+
+    public init(integerLiteral value: Int64) {
+        self = .id(value)
+    }
 }
-
-
 

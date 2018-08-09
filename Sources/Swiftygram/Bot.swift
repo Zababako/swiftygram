@@ -35,14 +35,25 @@ final class SwiftyBot: Bot {
     private let api:   API
     private let token: Token
 
-    private var subscriptionsRegistry: [WeakBox<Holder> : (Update) -> Void] = [:]
+    private var offset: Update.ID?
+    private var subscriptionsRegistry: [WeakBox<Holder> : (Update) -> Void] = [:] {
+        didSet {
+            // TODO: if added first holder - start updates
+
+            // TODO: if removed last holder - end updates
+        }
+    }
+
+    private let queue: DispatchQueue = DispatchQueue(label: "swiftygram.bot")
+    private let delegateQueue: DispatchQueue
 
 
     // MARK: - Initialization / Deinitialization
 
-    init(api: API, token: Token) {
-        self.api   = api
-        self.token = token
+    init(api: API, token: Token, delegateQueue: DispatchQueue) {
+        self.api           = api
+        self.token         = token
+        self.delegateQueue = delegateQueue
     }
 
 
@@ -50,15 +61,22 @@ final class SwiftyBot: Bot {
 
     func subscribeToUpdates(handler: @escaping (Update) -> Void) -> SubscriptionHolder {
 
-        // TODO: implement
-        return Holder()
+        let holder = Holder()
+
+        queue.async {
+            self.subscriptionsRegistry[WeakBox(holder)] = handler
+        }
+
+        return holder
     }
 
     func getMe(onComplete: @escaping (Result<User>) -> Void) {
 
-        Result.action(handler: onComplete) {
+        let handler = { result in self.delegateQueue.async { onComplete(result) } }
+
+        Result.action(handler: handler) {
             api.send(
-                request: try Method.getMe.request(for: token),
+                request: try Method.GetMe().request(for: token),
                 onComplete: $0
             )
         }
@@ -71,13 +89,21 @@ final class SwiftyBot: Bot {
         onComplete:          @escaping (Result<Message>) -> Void
     ) {
 
-        Result.action(handler: onComplete) {
+        let handler = { result in self.delegateQueue.async { onComplete(result) } }
+
+        Result.action(handler: handler) {
             api.send(
-                request: try Method.sendMessage(to: to, text: message)
-                                   .request(for: token, with: additionalArguments),
+                request: try Method.SendMessage(chatId: to, text: message).request(for: token),
                 onComplete: $0
             )
         }
+    }
+
+
+    // MARK: - Private Methods
+
+    private func checkUpdates() {
+
     }
 }
 

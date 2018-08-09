@@ -4,20 +4,53 @@
 
 import Foundation
 
-
-enum Method {
-    case getMe
-    case sendMessage(to: Receiver, text: String)
-}
-
 enum MethodError: Error {
     case baseUrlCompositionFailure
-    case conflictingArguments
 }
 
-extension Method {
+typealias Endpoint = RequestableObject & DefinedObject & Encodable
 
-    func request(for token: Token, with additionalArguments: [String : Any] = [:]) throws -> URLRequest {
+struct Method {
+
+    struct GetUpdates: Endpoint {
+        let offset:         Update.ID?
+        let limit:          Int?
+        let timeout:        Int?
+        let allowedUpdates: [String]?
+    }
+
+    struct GetMe: Endpoint {}
+
+    struct SendMessage: Endpoint {
+        let chatId: Receiver
+        let text:   String
+    }
+}
+
+protocol RequestableObject {
+    func request(for token: Token) throws -> URLRequest
+}
+
+protocol DefinedObject {
+    var path: String { get }
+}
+
+extension DefinedObject {
+    var path: String {
+		let name = String(describing: type(of: self))
+        return String(name.first!).lowercased() + name.dropFirst()
+    }
+}
+
+private let encoder: JSONEncoder = {
+    let encoder = JSONEncoder()
+    encoder.keyEncodingStrategy = .convertToSnakeCase
+    return encoder
+}()
+
+extension RequestableObject where Self: DefinedObject, Self: Encodable {
+
+    func request(for token: Token) throws -> URLRequest {
 
         let url = try composeURL(with: token)
 
@@ -25,10 +58,8 @@ extension Method {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let arguments = try coreArguments.merging(additionalArguments) {
-            _, _ in throw MethodError.conflictingArguments
-        }
-        request.httpBody = try JSONSerialization.data(withJSONObject: arguments)
+        let data = try encoder.encode(self)
+        request.httpBody = data
 
         return request
     }
@@ -46,30 +77,8 @@ extension Method {
 
         let authenticated = base.appendingPathComponent("bot\(token)")
 
-        return authenticated.appendingPathComponent(name)
-    }
-
-    private var name: String {
-        switch self {
-        case .getMe:       return "getMe"
-        case .sendMessage: return "sendMessage"
-        }
-    }
-
-    private var coreArguments: [String : Any] {
-        switch self {
-        case     .getMe:                 return [:]
-        case let .sendMessage(to, text): return [ "chat_id" : to.value, "text" : text]
-        }
+        return authenticated.appendingPathComponent(path)
     }
 }
 
-private extension Receiver {
-    var value: Any {
-        switch self {
-        case let .id(id):             return id
-        case let .username(username): return username
-        }
-    }
-}
 

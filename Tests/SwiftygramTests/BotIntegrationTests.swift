@@ -23,7 +23,8 @@ final class BotIntegrationTests: XCTestCase {
 
         bot = SwiftyBot(
             api:   APIClient(configuration: .ephemeral),
-            token: token ?? "abc"
+            token: token ?? "abc",
+            delegateQueue: .main
         )
     }
 
@@ -123,6 +124,7 @@ final class BotIntegrationTests: XCTestCase {
     }
 	
     func test_Bot_receives_message() {
+
         XCTFail("TODO: Implement")
     }
 }
