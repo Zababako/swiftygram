@@ -19,8 +19,7 @@ public protocol Bot {
         onComplete:          @escaping (Result<Message>) -> Void
     )
 
-    func subscribeToUpdates(handler: @escaping (Update) -> Void) -> SubscriptionHolder
-    var updatesErrorHandler: (Error) -> Void { get set }
+    func subscribeToUpdates(handler: @escaping (Result<[Update]>) -> Void) -> SubscriptionHolder
 }
 
 
@@ -39,7 +38,7 @@ final class SwiftyBot: Bot {
     private let pollingTimeout: TimeInterval
 
     private var offset: Update.ID?
-    private var subscriptionsRegistry: [WeakBox<Holder> : (Update) -> Void] = [:] {
+    private var subscriptionsRegistry: [WeakBox<Holder> : (Result<[Update]>) -> Void] = [:] {
         didSet {
             subscriptionsRegistry = subscriptionsRegistry.filter { (box, _) in box.value != nil }
             isUpdating = !subscriptionsRegistry.isEmpty
@@ -70,7 +69,7 @@ final class SwiftyBot: Bot {
 
     // MARK: - Bot
 
-    func subscribeToUpdates(handler: @escaping (Update) -> Void) -> SubscriptionHolder {
+    func subscribeToUpdates(handler: @escaping (Result<[Update]>) -> Void) -> SubscriptionHolder {
 
         let holder = Holder()
 
@@ -79,10 +78,6 @@ final class SwiftyBot: Bot {
         }
 
         return holder
-    }
-
-    var updatesErrorHandler: (Error) -> Void = {
-        print("Error happened during updates: \($0)")
     }
 
     func getMe(onComplete: @escaping (Result<User>) -> Void) {
@@ -117,41 +112,51 @@ final class SwiftyBot: Bot {
 
     // MARK: - Private Methods
 
+    private func propagateUpdateResult(_ result: Result<[Update]>) {
+
+        subscriptionsRegistry = subscriptionsRegistry.filter { (box, _) in box.value != nil }
+
+        subscriptionsRegistry.forEach { (_, handler) in
+            delegateQueue.async { handler(result) }
+        }
+    }
+
     private func checkUpdates() {
+
+        // Asserting this code is performed on self.queue
 
         let timeout = Int(pollingTimeout)
 
-        queue.async {
-            [api, offset, token] in
+        do {
+            api.send(
+                request: try Method.GetUpdates(
+                    offset:         offset,
+                    limit:          nil,
+                    timeout:        timeout,
+                    allowedUpdates: nil
+                ).request(for: token)
+            ) {
+                [queue]
+                (result: Result<[Update]>) in
 
-            do {
-                api.send(
-                    request: try Method.GetUpdates(
-                        offset:         offset,
-                        limit:          nil,
-                        timeout:        timeout,
-                        allowedUpdates: nil
-                    ).request(for: token)
-                ) {
-                    (result: Result<[Update]>) in
+                queue.async {
+                    result.onSuccess {
+                        updates in
 
-                    result
-                        .onSuccess {
-                            updates in
-
-                            updates.forEach { update in
-                                self.subscriptionsRegistry.values.forEach { handler in
-                                    handler(update)
-                                }
-                            }
+                        if let last = updates.last {
+                            self.offset = last.updateId.next
                         }
-                        .onFailure {
-                            self.updatesErrorHandler($0)
-                        }
+                    }
+
+                    self.propagateUpdateResult(result)
+
+                    if self.isUpdating {
+                        self.checkUpdates()
+                    }
                 }
-            } catch {
-                self.updatesErrorHandler(error)
             }
+        } catch {
+            propagateUpdateResult(.failure(error))
         }
     }
 }

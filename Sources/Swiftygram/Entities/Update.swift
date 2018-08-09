@@ -15,3 +15,9 @@ public struct Update: Decodable {
     public let channelPost:       Message?
     public let editedChannelPost: Message?
 }
+
+extension Update.ID {
+    var next: Update.ID {
+        return self.advanced(by: 1)
+    }
+}

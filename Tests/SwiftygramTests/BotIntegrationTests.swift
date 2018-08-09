@@ -128,19 +128,21 @@ final class BotIntegrationTests: XCTestCase {
 
     func test_Bot_receives_updates() {
 
-        bot.updatesErrorHandler = {
-            XCTFail("Error doesn't happen during updates: \($0)")
-        }
-
         let updateReceived = expectation(description: "Update is received")
+        updateReceived.assertForOverFulfill = false
 
         updatesHolder = bot.subscribeToUpdates {
-            update in
+            result in
 
             updateReceived.fulfill()
+
+            if case .failure(let error) = result {
+                XCTFail("Error doesn't happen during updates: \(error)")
+                return
+            }
         }
 
-        waitForExpectations(timeout: 10)
+        waitForExpectations(timeout: 3)
     }
 }
 

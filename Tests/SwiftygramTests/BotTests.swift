@@ -24,16 +24,17 @@ final class BotTests: XCTestCase {
             api:            apiMock,
             pollingTimeout: 10,
             token:          "123",
-            delegateQueue:  .main
+            delegateQueue:  DispatchQueue.global()
         )
     }
 
     func test_When_first_subscription_happens_updates_start() {
 
         let updateURL = URL(string: "https://api.telegram.org/bot123/getUpdates")!
-
         apiMock.t_storage[updateURL] = .success([Update(updateId: 1, message: nil, editedMessage: nil, channelPost: nil, editedChannelPost: nil)])
-        let updateReceived = expectation(description: "Update received")
+
+		let updateReceived = expectation(description: "Update received")
+		updateReceived.assertForOverFulfill = false
 
         holder = bot.subscribeToUpdates {
             _ in
@@ -44,20 +45,38 @@ final class BotTests: XCTestCase {
     }
 
     func test_When_last_holder_is_released_updates_stop() {
-
-		var counter = 0
-        holder = bot.subscribeToUpdates { _ in
-			counter
-		}
-
-        holder = nil
 		
-		bot.updatesErrorHandler {
-			XCTFail("No error should happen \($0)")
+		let updateURL = URL(string: "https://api.telegram.org/bot123/getUpdates")!
+		apiMock.t_storage[updateURL] = .success([Update(updateId: 1, message: nil, editedMessage: nil, channelPost: nil, editedChannelPost: nil)])
+
+		let timePasses = expectation(description: "Time passes")
+
+		var lastUpdateStamp = Date().timeIntervalSince1970
+        holder = bot.subscribeToUpdates { result in
+
+			lastUpdateStamp = Date().timeIntervalSince1970
+			
+            if case .failure(let error) = result {
+				XCTFail("Update doesn't fail with error: \(error)")
+                return
+            }
+        }
+		
+		DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
+			
+			self.holder = nil
+			let releaseStamp = Date().timeIntervalSince1970
+
+			DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
+				timePasses.fulfill()
+				XCTAssertGreaterThan(releaseStamp, lastUpdateStamp)
+			}
 		}
-
-        // TODO: check that update requests are not sent to api anymore
+		
+		waitForExpectations(timeout: 3)
     }
-
-
+	
+	func test_Updates_are_requested_infinitely() {
+		XCTFail("TODO: implement")
+	}
 }
