@@ -45,31 +45,29 @@ final class BotTests: XCTestCase {
     }
 
     func test_When_last_holder_is_released_updates_stop() {
-		
+
 		let updateURL = URL(string: "https://api.telegram.org/bot123/getUpdates")!
-		apiMock.t_storage[updateURL] = .success([Update(updateId: 1, message: nil, editedMessage: nil, channelPost: nil, editedChannelPost: nil)])
-
-		let timePasses = expectation(description: "Time passes")
-
-		var lastUpdateStamp = Date().timeIntervalSince1970
-        holder = bot.subscribeToUpdates { result in
-
-			lastUpdateStamp = Date().timeIntervalSince1970
-			
-            if case .failure(let error) = result {
-				XCTFail("Update doesn't fail with error: \(error)")
-                return
-            }
-        }
+		apiMock.t_storage[updateURL] = .success([Update()])
 		
-		DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
+		var counter = 0
+		let timePassesAfterUnsubscription = expectation(description: "Time passes")
+
+		holder = bot.subscribeToUpdates {
+			result in
+			
+			if case .failure(let error) = result {
+				XCTFail("Update doesn't fail with error: \(error)")
+				return
+			}
+			
+			counter += 1
+			guard counter >= 3 else { return }
 			
 			self.holder = nil
-			let releaseStamp = Date().timeIntervalSince1970
-
+			
 			DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
-				timePasses.fulfill()
-				XCTAssertGreaterThan(releaseStamp, lastUpdateStamp)
+				timePassesAfterUnsubscription.fulfill()
+				XCTAssertEqual(counter, 3)
 			}
 		}
 		
@@ -77,6 +75,40 @@ final class BotTests: XCTestCase {
     }
 	
 	func test_Updates_are_requested_infinitely() {
-		XCTFail("TODO: implement")
+
+		let updateURL = URL(string: "https://api.telegram.org/bot123/getUpdates")!
+		apiMock.t_storage[updateURL] = .success([Update()])
+
+        let updateHappensThreeTimes = expectation(description: "Updates are received three times")
+        var counter = 0
+
+        holder = bot.subscribeToUpdates {
+            result in
+
+            if case .failure(let error) = result {
+                XCTFail("Update doesn't fail with error: \(error)")
+                return
+            }
+
+            counter += 1
+
+            if counter >= 3 {
+                updateHappensThreeTimes.fulfill()
+            }
+        }
+
+        waitForExpectations(timeout: 3)
+	}
+}
+
+private extension Update {
+	init() {
+		self.init(
+			updateId: 1,
+			message: nil,
+			editedMessage: nil,
+			channelPost: nil,
+			editedChannelPost: nil
+		)
 	}
 }

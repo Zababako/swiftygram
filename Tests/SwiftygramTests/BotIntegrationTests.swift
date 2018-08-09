@@ -131,7 +131,7 @@ final class BotIntegrationTests: XCTestCase {
         let updateReceived = expectation(description: "Update is received")
         updateReceived.assertForOverFulfill = false
 
-        updatesHolder = bot.subscribeToUpdates {
+		updatesHolder = bot.subscribeToUpdates { // TODO: send updates with offset -1
             result in
 
             updateReceived.fulfill()
