@@ -12,6 +12,8 @@ final class BotIntegrationTests: XCTestCase {
 
     var bot: SwiftyBot!
 
+    var updatesHolder: SubscriptionHolder?
+
     override func setUp() {
         super.setUp()
 
@@ -22,9 +24,10 @@ final class BotIntegrationTests: XCTestCase {
         }
 
         bot = SwiftyBot(
-            api:   APIClient(configuration: .ephemeral),
-            token: token ?? "abc",
-            delegateQueue: .main
+            api:            APIClient(configuration: .ephemeral),
+            pollingTimeout: 10,
+            token:          token ?? "abc",
+            delegateQueue:  .main
         )
     }
 
@@ -68,7 +71,7 @@ final class BotIntegrationTests: XCTestCase {
                 return
             }
 
-            bot.send(message: "Ping", to: .id(info.id)) {
+            bot.send(message: "Running tests (\(Date()))", to: .id(info.id)) {
                 result in
 
                 sendingFinishes.fulfill()
@@ -109,7 +112,7 @@ final class BotIntegrationTests: XCTestCase {
 
         let sendingFinishes = expectation(description: "Sending finishes")
 
-        bot.send(message: "Ping", to: receiver) {
+        bot.send(message: "Running tests (\(Date()))", to: receiver) {
             result in
 
             sendingFinishes.fulfill()
@@ -122,10 +125,22 @@ final class BotIntegrationTests: XCTestCase {
 
         waitForExpectations(timeout: 3)
     }
-	
-    func test_Bot_receives_message() {
 
-        XCTFail("TODO: Implement")
+    func test_Bot_receives_updates() {
+
+        bot.updatesErrorHandler = {
+            XCTFail("Error doesn't happen during updates: \($0)")
+        }
+
+        let updateReceived = expectation(description: "Update is received")
+
+        updatesHolder = bot.subscribeToUpdates {
+            update in
+
+            updateReceived.fulfill()
+        }
+
+        waitForExpectations(timeout: 10)
     }
 }
 

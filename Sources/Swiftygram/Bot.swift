@@ -20,6 +20,7 @@ public protocol Bot {
     )
 
     func subscribeToUpdates(handler: @escaping (Update) -> Void) -> SubscriptionHolder
+    var updatesErrorHandler: (Error) -> Void { get set }
 }
 
 
@@ -35,12 +36,20 @@ final class SwiftyBot: Bot {
     private let api:   API
     private let token: Token
 
+    private let pollingTimeout: TimeInterval
+
     private var offset: Update.ID?
     private var subscriptionsRegistry: [WeakBox<Holder> : (Update) -> Void] = [:] {
         didSet {
-            // TODO: if added first holder - start updates
+            subscriptionsRegistry = subscriptionsRegistry.filter { (box, _) in box.value != nil }
+            isUpdating = !subscriptionsRegistry.isEmpty
+        }
+    }
+    private var isUpdating: Bool = false {
+        didSet {
+            guard isUpdating != oldValue else { return }
 
-            // TODO: if removed last holder - end updates
+            if isUpdating { checkUpdates() }
         }
     }
 
@@ -50,10 +59,12 @@ final class SwiftyBot: Bot {
 
     // MARK: - Initialization / Deinitialization
 
-    init(api: API, token: Token, delegateQueue: DispatchQueue) {
-        self.api           = api
-        self.token         = token
-        self.delegateQueue = delegateQueue
+    /// parameter pollingTimeout - should be the same as timeout in URLSessionConfiguration in API
+    init(api: API, pollingTimeout: TimeInterval, token: Token, delegateQueue: DispatchQueue) {
+        self.api            = api
+        self.pollingTimeout = pollingTimeout
+        self.token          = token
+        self.delegateQueue  = delegateQueue
     }
 
 
@@ -68,6 +79,10 @@ final class SwiftyBot: Bot {
         }
 
         return holder
+    }
+
+    var updatesErrorHandler: (Error) -> Void = {
+        print("Error happened during updates: \($0)")
     }
 
     func getMe(onComplete: @escaping (Result<User>) -> Void) {
@@ -104,6 +119,40 @@ final class SwiftyBot: Bot {
 
     private func checkUpdates() {
 
+        let timeout = Int(pollingTimeout)
+
+        queue.async {
+            [api, offset, token] in
+
+            do {
+                api.send(
+                    request: try Method.GetUpdates(
+                        offset:         offset,
+                        limit:          nil,
+                        timeout:        timeout,
+                        allowedUpdates: nil
+                    ).request(for: token)
+                ) {
+                    (result: Result<[Update]>) in
+
+                    result
+                        .onSuccess {
+                            updates in
+
+                            updates.forEach { update in
+                                self.subscriptionsRegistry.values.forEach { handler in
+                                    handler(update)
+                                }
+                            }
+                        }
+                        .onFailure {
+                            self.updatesErrorHandler($0)
+                        }
+                }
+            } catch {
+                self.updatesErrorHandler(error)
+            }
+        }
     }
 }
 

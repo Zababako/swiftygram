@@ -16,6 +16,18 @@ public extension Result {
         }
     }
 
+    @discardableResult
+    func onSuccess(handler: (T) -> Void) -> Result<T> {
+        if case .success(let x) = self { handler(x) }
+        return self
+    }
+
+    @discardableResult
+    func onFailure(handler: (Error) -> Void) -> Result<T> {
+        if case .failure(let error) = self { handler(error) }
+        return self
+    }
+
     static func action(
         handler: @escaping (Result<T>) -> Void,
         action: (@escaping (Result<T>) -> Void) throws -> Void
