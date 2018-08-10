@@ -11,6 +11,8 @@ public protocol SubscriptionHolder: AnyObject {}
 
 public protocol Bot: AnyObject {
 
+    func updateErrorRecoveryTime(_ time: TimeInterval)
+
     func getMe(onComplete: @escaping (Result<User>) -> Void)
     func send(
         message:             String,
@@ -37,6 +39,7 @@ final class SwiftyBot: Bot {
 
     private let pollingTimeout: TimeInterval
 
+    private var errorRecoveryTime: TimeInterval = 1
     private var offset: Update.ID?
     private var subscriptionsRegistry: [WeakBox<Holder> : (Result<[Update]>) -> Void] = [:] {
         didSet {
@@ -75,6 +78,10 @@ final class SwiftyBot: Bot {
 
 
     // MARK: - Bot
+
+    func updateErrorRecoveryTime(_ time: TimeInterval) {
+        queue.async { self.errorRecoveryTime = time }
+    }
 
     func subscribeToUpdates(handler: @escaping (Result<[Update]>) -> Void) -> SubscriptionHolder {
 
@@ -157,7 +164,16 @@ final class SwiftyBot: Bot {
 
                     self.propagateUpdateResult(result)
 
-                    if self.isUpdating {
+                    guard self.isUpdating else { return }
+
+                    let delay: TimeInterval = result.choose(
+                        ifSuccess: 0,
+                        ifFailure: self.errorRecoveryTime
+                    )
+
+                    queue.asyncAfter(
+                        deadline: .now() + .nanoseconds(Int(delay * Double(NSEC_PER_SEC)))
+                    ) {
                         self.checkUpdates()
                     }
                 }
