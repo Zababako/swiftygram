@@ -9,7 +9,7 @@ public typealias Token = String
 
 public protocol SubscriptionHolder: AnyObject {}
 
-public protocol Bot {
+public protocol Bot: AnyObject {
 
     func getMe(onComplete: @escaping (Result<User>) -> Void)
     func send(
@@ -59,11 +59,18 @@ final class SwiftyBot: Bot {
     // MARK: - Initialization / Deinitialization
 
     /// parameter pollingTimeout - should be the same as timeout in URLSessionConfiguration in API
-    init(api: API, pollingTimeout: TimeInterval, token: Token, delegateQueue: DispatchQueue) {
+    init(
+        api:            API,
+        pollingTimeout: TimeInterval,
+        token:          Token,
+        delegateQueue:  DispatchQueue,
+        initialOffset:  Update.ID? = nil
+    ) {
         self.api            = api
         self.pollingTimeout = pollingTimeout
         self.token          = token
         self.delegateQueue  = delegateQueue
+        self.offset         = initialOffset
     }
 
 

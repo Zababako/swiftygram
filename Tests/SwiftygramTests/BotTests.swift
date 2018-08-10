@@ -24,14 +24,14 @@ final class BotTests: XCTestCase {
             api:            apiMock,
             pollingTimeout: 10,
             token:          "123",
-            delegateQueue:  DispatchQueue.global()
+            delegateQueue:  .main
         )
     }
 
     func test_When_first_subscription_happens_updates_start() {
 
         let updateURL = URL(string: "https://api.telegram.org/bot123/getUpdates")!
-        apiMock.t_storage[updateURL] = .success([Update(updateId: 1, message: nil, editedMessage: nil, channelPost: nil, editedChannelPost: nil)])
+        apiMock.t_storage[updateURL] = .success([Update()])
 
 		let updateReceived = expectation(description: "Update received")
 		updateReceived.assertForOverFulfill = false
@@ -94,17 +94,52 @@ final class BotTests: XCTestCase {
 
             if counter >= 3 {
                 updateHappensThreeTimes.fulfill()
+				self.holder = nil
             }
         }
 
         waitForExpectations(timeout: 3)
 	}
+
+    func test_On_each_update_bot_requests_update_after_the_last_one_received() {
+
+        let updateURL = URL(string: "https://api.telegram.org/bot123/getUpdates")!
+        apiMock.t_storage[updateURL] = .success([Update(id: 5)])
+
+		let updateRequestReceived = expectation(description: "Mock receives request to getUpdates")
+		
+        holder = bot.subscribeToUpdates {
+            result in
+
+            if case .failure(let error) = result {
+                XCTFail("Update doesn't fail with error: \(error)")
+                return
+            }
+			
+			self.apiMock.t_onSend = {
+                (request: URLRequest) in
+
+                let getUpdatesDictionary = try! JSONSerialization.jsonObject(with: request.httpBody!) as! [String : Any]
+                guard let offset = getUpdatesDictionary["offset"]! as? Int64 else {
+                    XCTFail("\(getUpdatesDictionary["offset"]!) is Int64")
+                    return
+                }
+				
+				self.holder = nil
+
+				updateRequestReceived.fulfill()
+                XCTAssertEqual(offset, 6)
+			}
+        }
+
+        waitForExpectations(timeout: 3)
+    }
 }
 
 private extension Update {
-	init() {
+	init(id: Update.ID = 1) {
 		self.init(
-			updateId: 1,
+			updateId: id,
 			message: nil,
 			editedMessage: nil,
 			channelPost: nil,

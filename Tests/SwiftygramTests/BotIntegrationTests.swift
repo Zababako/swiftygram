@@ -31,6 +31,12 @@ final class BotIntegrationTests: XCTestCase {
         )
     }
 
+    override func tearDown() {
+        super.tearDown()
+
+        updatesHolder = nil
+    }
+
     func test_Bot_receives_info_about_itself() {
 
         let requestFinishes = expectation(description: "Request finishes")
@@ -119,25 +125,6 @@ final class BotIntegrationTests: XCTestCase {
 
             if case .failure(let error) = result {
                 XCTFail("Sending doesn't fail with error: \(error)")
-                return
-            }
-        }
-
-        waitForExpectations(timeout: 3)
-    }
-
-    func test_Bot_receives_updates() {
-
-        let updateReceived = expectation(description: "Update is received")
-        updateReceived.assertForOverFulfill = false
-
-		updatesHolder = bot.subscribeToUpdates { // TODO: send updates with offset -1
-            result in
-
-            updateReceived.fulfill()
-
-            if case .failure(let error) = result {
-                XCTFail("Error doesn't happen during updates: \(error)")
                 return
             }
         }

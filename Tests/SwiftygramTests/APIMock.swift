@@ -15,11 +15,11 @@ enum TestError: Error {
 final class APIMock: API {
 
     var t_storage: [URL : Result<Any>] = [:]
-	var t_onSend: () -> Void = {}
+	var t_onSend: (URLRequest) -> Void = { _ in }
 
     func send<T: Decodable>(request: URLRequest, onComplete: @escaping (Result<T>) -> Void) {
 
-		t_onSend()
+		t_onSend(request)
 		
         guard let preparedResult = t_storage[request.url!] else {
             XCTFail("Test preparation - result for: \(request.url!) is prepared")
