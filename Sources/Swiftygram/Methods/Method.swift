@@ -15,6 +15,18 @@ struct APIMethod {
         let limit:          Int?
         let timeout:        Int?
         let allowedUpdates: [String]?
+
+        init(
+            offset:         Update.ID? = nil,
+            limit:          Int?       = nil,
+            timeout:        Int?       = nil,
+            allowedUpdates: [String]?  = nil
+        ) {
+            self.offset         = offset
+            self.limit          = limit
+            self.timeout        = timeout
+            self.allowedUpdates = allowedUpdates
+        }
     }
 
     struct GetMe: Endpoint {}
@@ -28,19 +40,37 @@ struct APIMethod {
         let disableWebPagePreview: Bool?
         let disableNotification:   Bool?
         let replyToMessageId:      Message.ID?
+        let replyMarkup:           ReplyMarkup?
+    }
+
+    struct SendDocument: Endpoint {
+
+        let chatId:   Receiver
+        let document: DocumentToSend
+
+        let thumb:   DocumentToSend?
+        let caption: String?
+
+        let parseMode:           ParseMode?
+        let disableNotification: Bool?
+        let replyToMessageId:    Message.ID?
+        let replyMarkup:         ReplyMarkup?
     }
 }
 
-internal extension Method.SendMessage {
-    init(chatId: Receiver, text: String) {
-        self.init(
-            chatId:                chatId,
-            text:                  text,
-            parseMode:             nil,
-            disableWebPagePreview: nil,
-            disableNotification:   nil,
-            replyToMessageId:      nil
-        )
+public enum DocumentToSend: Encodable {
+
+    case data(Data)
+    case reference(String)
+
+    public func encode(to encoder: Encoder) throws {
+
+        switch self {
+        case .data: break // In case it's data it should go into body not a part of the JSON
+        case .reference(let identifier):
+            var container = encoder.singleValueContainer()
+            try container.encode(identifier)
+        }
     }
 }
 
@@ -113,4 +143,34 @@ public struct ReplyKeyboardRemove: Encodable {
 public struct ForceReply: Encodable {
     public let forceReply: Bool = true
     public let selective:  Bool?
+}
+
+
+internal extension APIMethod.SendMessage {
+    init(chatId: Receiver, text: String) {
+        self.init(
+            chatId:                chatId,
+            text:                  text,
+            parseMode:             nil,
+            disableWebPagePreview: nil,
+            disableNotification:   nil,
+            replyToMessageId:      nil,
+            replyMarkup:           nil
+        )
+    }
+}
+
+internal extension APIMethod.SendDocument {
+    init(chatId: Receiver, document: DocumentToSend) {
+        self.init(
+            chatId:              chatId,
+            document:            document,
+            thumb:               nil,
+            caption:             nil,
+            parseMode:           nil,
+            disableNotification: nil,
+            replyToMessageId:    nil,
+            replyMarkup:         nil
+        )
+    }
 }
