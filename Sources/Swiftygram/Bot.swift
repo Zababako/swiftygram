@@ -17,7 +17,7 @@ public protocol Bot: AnyObject {
     func send(
         message:             String,
         to:                  Receiver,
-        additionalArguments: [String : Any],
+        parseMode:           ParseMode?,
         onComplete:          @escaping (Result<Message>) -> Void
     )
 
@@ -107,17 +107,24 @@ final class SwiftyBot: Bot {
     }
 
     func send(
-        message:             String,
-        to:                  Receiver,
-        additionalArguments: [String : Any] = [:],
-        onComplete:          @escaping (Result<Message>) -> Void
+        message:    String,
+        to:         Receiver,
+        parseMode:  ParseMode?,
+        onComplete: @escaping (Result<Message>) -> Void
     ) {
 
         let handler = { result in self.delegateQueue.async { onComplete(result) } }
 
         Result.action(handler: handler) {
             api.send(
-                request: try Method.SendMessage(chatId: to, text: message).request(for: token),
+                request: try Method.SendMessage(
+                    chatId: 			   to,
+                    text: 				   message,
+                    parseMode: 			   parseMode,
+                    disableWebPagePreview: nil, // TODO: add to protocol
+                    disableNotification:   nil,
+                    replyToMessageId:      nil
+                ).request(for: token),
                 onComplete: $0
             )
         }

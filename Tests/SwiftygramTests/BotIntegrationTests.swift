@@ -77,7 +77,7 @@ final class BotIntegrationTests: XCTestCase {
                 return
             }
 
-            bot.send(message: "Running tests (\(Date()))", to: .id(info.id)) {
+            bot.send(message: "Running tests (\(Date()))", to: .id(info.id), parseMode: nil) {
                 result in
 
                 sendingFinishes.fulfill()
@@ -118,7 +118,7 @@ final class BotIntegrationTests: XCTestCase {
 
         let sendingFinishes = expectation(description: "Sending finishes")
 
-        bot.send(message: "Running tests (\(Date()))", to: receiver) {
+        bot.send(message: "Running tests (\(Date()))", to: receiver, parseMode: nil) {
             result in
 
             sendingFinishes.fulfill()

@@ -16,6 +16,13 @@ public extension Result {
         }
     }
 
+    func choose<U>(ifSuccess sValue: U, ifFailure fValue: U) -> U {
+        switch self {
+        case .success: return sValue
+        case .failure: return fValue
+        }
+    }
+
     @discardableResult
     func onSuccess(handler: (T) -> Void) -> Result<T> {
         if case .success(let x) = self { handler(x) }
