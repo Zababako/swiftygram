@@ -9,10 +9,10 @@ public enum Result<T>{
 
 public extension Result {
 
-    func map<U>(_ transformation: (T) -> U) -> Result<U> {
+    func map<U>(_ transformation: (T) throws -> U) rethrows -> Result<U> {
         switch self {
         case .failure(let error): return Result<U>.failure(error)
-        case .success(let x):     return Result<U>.success(transformation(x))
+        case .success(let x):     return Result<U>.success(try transformation(x))
         }
     }
 
@@ -24,14 +24,14 @@ public extension Result {
     }
 
     @discardableResult
-    func onSuccess(handler: (T) -> Void) -> Result<T> {
-        if case .success(let x) = self { handler(x) }
+    func onSuccess(handler: (T) throws -> Void) rethrows -> Result<T> {
+        if case .success(let x) = self { try handler(x) }
         return self
     }
 
     @discardableResult
-    func onFailure(handler: (Error) -> Void) -> Result<T> {
-        if case .failure(let error) = self { handler(error) }
+    func onFailure(handler: (Error) throws -> Void) rethrows -> Result<T> {
+        if case .failure(let error) = self { try handler(error) }
         return self
     }
 
