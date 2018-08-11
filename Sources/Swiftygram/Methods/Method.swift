@@ -48,7 +48,7 @@ struct APIMethod {
         let chatId:   Receiver
         let document: DocumentToSend
 
-        let thumb:   DocumentToSend?
+		let thumb:   DocumentToSend? // TODO: figure out how thumb is sent as file simultaneously with document file
         let caption: String?
 
         let parseMode:           ParseMode?
@@ -58,20 +58,44 @@ struct APIMethod {
     }
 }
 
-public enum DocumentToSend: Encodable {
+extension APIMethod.SendDocument {
 
+    private enum CodingKeys: String, CodingKey {
+        case chatId
+        case document
+        case thumb
+        case caption
+        case parseMode
+        case disableNotification
+        case replyToMessageId
+        case replyMarkup
+    }
+
+    func encode(to encoder: Encoder) throws {
+
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(chatId, forKey: .chatId)
+
+        if case .reference(let fileId) = document {
+            try container.encode(fileId, forKey: .document)
+        }
+
+        if case .some(.reference(let fileId)) = thumb {
+            try container.encode(fileId, forKey: .thumb)
+        }
+
+        try caption.map             { try container.encode($0, forKey: .caption)             }
+        try parseMode.map           { try container.encode($0, forKey: .parseMode)           }
+        try disableNotification.map { try container.encode($0, forKey: .disableNotification) }
+        try replyToMessageId.map    { try container.encode($0, forKey: .replyToMessageId)    }
+        try replyMarkup.map         { try container.encode($0, forKey: .replyMarkup)         }
+    }
+}
+
+public enum DocumentToSend {
     case data(Data)
     case reference(String)
-
-    public func encode(to encoder: Encoder) throws {
-
-        switch self {
-        case .data: break // In case it's data it should go into body not a part of the JSON
-        case .reference(let identifier):
-            var container = encoder.singleValueContainer()
-            try container.encode(identifier)
-        }
-    }
 }
 
 /// https://core.telegram.org/bots/api#replymarkup

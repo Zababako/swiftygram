@@ -24,6 +24,17 @@ extension DefinedObject {
 	}
 }
 
+/// https://core.telegram.org/bots/api#making-requests
+private func baseURLComponents(with token: Token, path: String) -> URLComponents {
+
+    var urlComponents = URLComponents()
+    urlComponents.scheme             = "https"
+    urlComponents.host               = "api.telegram.org"
+    urlComponents.percentEncodedPath = "/bot\(token)/\(path)"
+
+    return urlComponents
+}
+
 private let encoder: JSONEncoder = {
 	let encoder = JSONEncoder()
 	encoder.keyEncodingStrategy = .convertToSnakeCase
@@ -34,7 +45,9 @@ extension RequestableObject where Self: DefinedObject, Self: Encodable {
 	
 	func request(for token: Token) throws -> URLRequest {
 		
-		let url = try composeURL(with: token)
+		guard let url = baseURLComponents(with: token, path: path).url else {
+            throw APIMethodError.baseUrlCompositionFailure
+        }
 		
 		var request = URLRequest(url: url)
 		request.httpMethod = "POST"
@@ -45,20 +58,35 @@ extension RequestableObject where Self: DefinedObject, Self: Encodable {
 		
 		return request
 	}
-	
-	/// https://core.telegram.org/bots/api#making-requests
-	private func composeURL(with token: Token) throws -> URL {
-		
-		var urlComponents = URLComponents()
-		urlComponents.scheme = "https"
-		urlComponents.host   = "api.telegram.org"
-		
-		guard let base = urlComponents.url else {
-			throw MethodError.baseUrlCompositionFailure
-		}
-		
-		let authenticated = base.appendingPathComponent("bot\(token)")
-		
-		return authenticated.appendingPathComponent(path)
-	}
+}
+
+extension APIMethod.SendDocument {
+
+    func request(for token: Token) throws -> URLRequest {
+
+        var components = baseURLComponents(with: token, path: path)
+
+        let jsonData = try encoder.encode(self)
+        let json     = try JSONSerialization.jsonObject(with: jsonData) as! [String : Any]
+
+        components.queryItems = json.map {
+            (element) in URLQueryItem(name: element.key, value: String(describing: element.value))
+        }
+
+        guard let url = components.url else {
+            throw APIMethodError.baseUrlCompositionFailure
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
+
+        if case .data(let data) = document {
+            request.httpBody = data
+        } else if case .some(.data(let data)) = thumb { // TODO: clarify how file upload is supposed
+            request.httpBody = data                     //       to be working in case both document and thumb are data
+        }
+
+        return request
+    }
 }

@@ -106,30 +106,64 @@ final class BotIntegrationTests: XCTestCase {
 
     func test_Bot_sends_message_to_its_owner() {
 
-        guard let owner = readFromEnvironment("TEST_BOT_OWNER") else {
-            XCTFail("'TEST_BOT_OWNER' is not set - nowhere to send message")
-            return
-        }
-		
-		guard let receiver = Receiver(value: owner) else {
-            XCTFail("'TEST_BOT_OWNER' value \(owner) can not be converted into `Receiver`")
-            return
-        }
+        testExpectation("Sending finishes") {
+            expectation in
 
-        let sendingFinishes = expectation(description: "Sending finishes")
+            bot.send(
+                message:   "Running tests (\(Date()))",
+                to:        try readOwner(),
+                parseMode: nil
+            ) {
+                result in
 
-        bot.send(message: "Running tests (\(Date()))", to: receiver, parseMode: nil) {
-            result in
+                expectation.fulfill()
 
-            sendingFinishes.fulfill()
-
-            if case .failure(let error) = result {
-                XCTFail("Sending doesn't fail with error: \(error)")
-                return
+                test {
+                    try result.onFailure { throw "Sending doesn't fail with error: \($0)" }
+                              .onSuccess { message in
+                                  guard let sender = message.from else { throw "No user in received message" }
+                                  XCTAssertTrue(sender.isBot)
+                              }
+                }
             }
         }
+    }
+	
+	func test_Bot_sends_file_to_its_owner() {
 
-        waitForExpectations(timeout: 3)
+        testExpectation("Sending finishes") {
+            expectation in
+
+            bot.send(
+                message:   "Running tests (\(Date()))",
+                to:        try readOwner(),
+                parseMode: nil
+            ) {
+                result in
+
+                expectation.fulfill()
+
+                test {
+                    try result.onFailure { throw "Sending doesn't fail with error: \($0)" }
+                              .onSuccess { message in
+                                  guard let sender = message.from else { throw "No user in received message" }
+                                  XCTAssertTrue(sender.isBot)
+                              }
+                }
+            }
+        }
     }
 }
 
+func readOwner() throws -> Receiver {
+
+    guard let owner = readFromEnvironment("TEST_BOT_OWNER") else {
+        throw "'TEST_BOT_OWNER' is not set - nowhere to send message"
+    }
+
+    guard let receiver = Receiver(value: owner) else {
+        throw "'TEST_BOT_OWNER' value \(owner) can not be converted into `Receiver`"
+    }
+
+    return receiver
+}
