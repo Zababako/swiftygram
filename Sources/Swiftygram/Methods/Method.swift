@@ -4,11 +4,11 @@
 
 import Foundation
 
-enum MethodError: Error {
+enum APIMethodError: Error {
     case baseUrlCompositionFailure
 }
 
-struct Method {
+struct APIMethod {
 
     struct GetUpdates: Endpoint {
         let offset:         Update.ID?

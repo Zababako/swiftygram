@@ -100,7 +100,7 @@ final class SwiftyBot: Bot {
 
         Result.action(handler: handler) {
             api.send(
-                request: try Method.GetMe().request(for: token),
+                request: try APIMethod.GetMe().request(for: token),
                 onComplete: $0
             )
         }
@@ -117,7 +117,7 @@ final class SwiftyBot: Bot {
 
         Result.action(handler: handler) {
             api.send(
-                request: try Method.SendMessage(
+                request: try APIMethod.SendMessage(
                     chatId: 			   to,
                     text: 				   message,
                     parseMode: 			   parseMode,
@@ -150,7 +150,7 @@ final class SwiftyBot: Bot {
 
         do {
             api.send(
-                request: try Method.GetUpdates(
+                request: try APIMethod.GetUpdates(
                     offset:         offset,
                     limit:          nil,
                     timeout:        timeout,
