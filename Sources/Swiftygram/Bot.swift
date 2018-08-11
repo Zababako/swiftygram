@@ -18,6 +18,20 @@ public protocol Bot: AnyObject {
         message:             String,
         to:                  Receiver,
         parseMode:           ParseMode?,
+        disableNotification: Bool?,
+        replyToMessageId:    Message.ID?,
+        replyMarkup:         ReplyMarkup?,
+        onComplete:          @escaping (Result<Message>) -> Void
+    )
+    func send(
+        document:            DocumentToSend,
+        to:                  Receiver,
+        thumb:               DocumentToSend?,
+        caption:             String?,
+        parseMode:           ParseMode?,
+        disableNotification: Bool?,
+        replyToMessageId:    Message.ID?,
+        replyMarkup:         ReplyMarkup?,
         onComplete:          @escaping (Result<Message>) -> Void
     )
 
@@ -107,10 +121,13 @@ final class SwiftyBot: Bot {
     }
 
     func send(
-        message:    String,
-        to:         Receiver,
-        parseMode:  ParseMode?,
-        onComplete: @escaping (Result<Message>) -> Void
+        message:             String,
+        to:                  Receiver,
+        parseMode:           ParseMode?   = nil,
+        disableNotification: Bool?        = nil,
+        replyToMessageId:    Message.ID?  = nil,
+        replyMarkup:         ReplyMarkup? = nil,
+        onComplete:          @escaping (Result<Message>) -> Void
     ) {
 
         let handler = { result in self.delegateQueue.async { onComplete(result) } }
@@ -122,8 +139,39 @@ final class SwiftyBot: Bot {
                     text: 				   message,
                     parseMode: 			   parseMode,
                     disableWebPagePreview: nil, // TODO: add to protocol
-                    disableNotification:   nil,
-                    replyToMessageId:      nil
+                    disableNotification:   disableNotification,
+                    replyToMessageId:      replyToMessageId,
+                    replyMarkup:           replyMarkup
+                ).request(for: token),
+                onComplete: $0
+            )
+        }
+    }
+
+    func send(
+        document:            DocumentToSend,
+        to:                  Receiver,
+        thumb:               DocumentToSend? = nil,
+        caption:             String?         = nil,
+        parseMode:           ParseMode?      = nil,
+        disableNotification: Bool?           = nil,
+        replyToMessageId:    Message.ID?     = nil,
+        replyMarkup:         ReplyMarkup?    = nil,
+        onComplete:          @escaping (Result<Message>) -> Void
+    ) {
+        let handler = { result in self.delegateQueue.async { onComplete(result) } }
+
+        Result.action(handler: handler) {
+            api.send(
+                request: try APIMethod.SendDocument(
+                    chatId:              to,
+                    document:            document,
+                    thumb:               thumb,
+                    caption:             caption,
+                    parseMode:           parseMode,
+                    disableNotification: disableNotification,
+                    replyToMessageId:    replyToMessageId,
+                    replyMarkup:         replyMarkup
                 ).request(for: token),
                 onComplete: $0
             )
