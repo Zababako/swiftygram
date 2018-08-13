@@ -17,7 +17,7 @@ final class MethodsTests: XCTestCase {
         XCTAssertEqual(APIMethod.SendDocument(chatId: "@chat", document: .reference("fileid1")).path, "sendDocument")
 	}
 
-    func test_Send_Document_encodes_arguments_into_url_and_puts_file_into_body() {
+    func test_Send_Document_encodes_arguments_into_multipart_form_data() {
 
         test {
             let fileData = "random file data".data(using: .utf8)!
@@ -25,28 +25,22 @@ final class MethodsTests: XCTestCase {
 
             let request = try method.request(for: "token1")
 
-            guard let url = request.url else {
-                throw "Formed request has URL"
+            guard let contentType = request.value(forHTTPHeaderField: "Content-type") else {
+                throw "Content-type request header was not specified"
             }
 
-            guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-                throw "Formed URL can be decomposed into components"
-            }
-
-            guard let queryItems = components.queryItems else {
-                throw "Formed URL contains query items"
-            }
-
-            XCTAssertTrue(queryItems.contains(where: {item in item.name == "chat_id" && item.value == "@chat"}))
+            XCTAssertNotNil(contentType.range(of: "multipart/form-data"))
 
             guard let body = request.httpBody else {
                 throw "Formed request has body"
             }
 
-            XCTAssertEqual(String(data: body, encoding: .utf8), "random file data")
+            XCTAssertNotNil(body)
+
+            // TODO: test body
         }
     }
-	
+
     /// https://core.telegram.org/bots/api#making-requests
     func test_URL_is_composed_as_described_in_document() {
 

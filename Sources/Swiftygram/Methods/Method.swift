@@ -10,7 +10,7 @@ enum APIMethodError: Error {
 
 struct APIMethod {
 
-    struct GetUpdates: Endpoint {
+    struct GetUpdates: Endpoint, Encodable {
         let offset:         Update.ID?
         let limit:          Int?
         let timeout:        Int?
@@ -29,9 +29,9 @@ struct APIMethod {
         }
     }
 
-    struct GetMe: Endpoint {}
+    struct GetMe: Endpoint, Encodable {}
 
-    struct SendMessage: Endpoint {
+    struct SendMessage: Endpoint, Encodable {
 
         let chatId: Receiver
         let text:   String
@@ -48,48 +48,13 @@ struct APIMethod {
         let chatId:   Receiver
         let document: DocumentToSend
 
-		let thumb:   DocumentToSend? // TODO: figure out how thumb is sent as file simultaneously with document file
+		let thumb:   DocumentToSend?
         let caption: String?
 
         let parseMode:           ParseMode?
         let disableNotification: Bool?
         let replyToMessageId:    Message.ID?
         let replyMarkup:         ReplyMarkup?
-    }
-}
-
-extension APIMethod.SendDocument {
-
-    private enum CodingKeys: String, CodingKey {
-        case chatId
-        case document
-        case thumb
-        case caption
-        case parseMode
-        case disableNotification
-        case replyToMessageId
-        case replyMarkup
-    }
-
-    func encode(to encoder: Encoder) throws {
-
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        try container.encode(chatId, forKey: .chatId)
-
-        if case .reference(let fileId) = document {
-            try container.encode(fileId, forKey: .document)
-        }
-
-        if case .some(.reference(let fileId)) = thumb {
-            try container.encode(fileId, forKey: .thumb)
-        }
-
-        try caption.map             { try container.encode($0, forKey: .caption)             }
-        try parseMode.map           { try container.encode($0, forKey: .parseMode)           }
-        try disableNotification.map { try container.encode($0, forKey: .disableNotification) }
-        try replyToMessageId.map    { try container.encode($0, forKey: .replyToMessageId)    }
-        try replyMarkup.map         { try container.encode($0, forKey: .replyMarkup)         }
     }
 }
 

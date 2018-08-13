@@ -56,7 +56,7 @@ final class BotIntegrationTests: XCTestCase {
             XCTAssertTrue(info.isBot)
         }
 
-        waitForExpectations(timeout: 3)
+        waitForExpectations(timeout: 5)
     }
 
     func test_Bot_sends_message_to_itself_and_fail_because_it_is_forbidden() {
@@ -134,10 +134,12 @@ final class BotIntegrationTests: XCTestCase {
         testExpectation("Sending finishes") {
             expectation in
 
+            let document = "Wow doc \(Date())".data(using: .utf8)!
+
             bot.send(
-                message:   "Running tests (\(Date()))",
-                to:        try readOwner(),
-                parseMode: nil
+                document: .data(document),
+                to:       try readOwner(),
+                caption:  "Wow test"
             ) {
                 result in
 
@@ -148,6 +150,10 @@ final class BotIntegrationTests: XCTestCase {
                               .onSuccess { message in
                                   guard let sender = message.from else { throw "No user in received message" }
                                   XCTAssertTrue(sender.isBot)
+
+                                  guard let doc = message.document else { throw "No document in messsage sent" }
+                                  guard let filename = doc.fileName else { throw "Document has no name" }
+                                  XCTAssertEqual(filename, "Wow test")
                               }
                 }
             }
