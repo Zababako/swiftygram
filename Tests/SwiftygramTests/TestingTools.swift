@@ -7,7 +7,7 @@ import XCTest
 
 extension String : Error {}
 
-func test(action: () throws -> ()) {
+func test(file: StaticString = #file, line: UInt = #line, action: () throws -> ()) {
     do { try action() }
     catch { XCTFail("Test failed - \(error)") }
 }
@@ -17,6 +17,8 @@ extension XCTestCase {
     func testExpectation(
         _ description: String,
         timeout:       TimeInterval = 2,
+        file:          StaticString = #file,
+        line:          UInt         = #line,
         action:        (XCTestExpectation) throws -> ()
     )  {
         let exp = expectation(description: description)
