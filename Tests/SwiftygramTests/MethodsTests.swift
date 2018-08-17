@@ -21,7 +21,7 @@ final class MethodsTests: XCTestCase {
 
         test {
             let fileData = "random file data".data(using: .utf8)!
-            let method = APIMethod.SendDocument(chatId: "@chat", document: .data(fileData))
+			let method = APIMethod.SendDocument(chatId: "@chat", document: .file(name:"test.txt", data: fileData))
 
             let request = try method.request(for: "token1")
 

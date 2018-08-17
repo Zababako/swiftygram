@@ -129,32 +129,58 @@ final class BotIntegrationTests: XCTestCase {
         }
     }
 	
-	func test_Bot_sends_file_to_its_owner() {
+	func test_Bot_sends_file_to_its_owner_at_first_by_content_then_by_id() {
 
-        testExpectation("Sending finishes") {
+        testExpectation("Sending finishes", timeout: 5) {
             expectation in
 
             let document = "Wow doc \(Date())".data(using: .utf8)!
 
+            let owner = try readOwner()
+
             bot.send(
-                document: .data(document),
-                to:       try readOwner(),
+				document: .file(name:"document_test.txt", data: document),
+                to:       owner,
                 caption:  "Wow test"
             ) {
+                [bot]
                 result in
-
-                expectation.fulfill()
 
                 test {
                     try result.onFailure { throw "Sending doesn't fail with error: \($0)" }
-                              .onSuccess { message in
-                                  guard let sender = message.from else { throw "No user in received message" }
-                                  XCTAssertTrue(sender.isBot)
 
-                                  guard let doc = message.document else { throw "No document in messsage sent" }
-                                  guard let filename = doc.fileName else { throw "Document has no name" }
-                                  XCTAssertEqual(filename, "Wow test")
-                              }
+                    guard let message = result.value else {
+                        throw "There is message in result"
+                    }
+
+                    guard let sender = message.from else { throw "No user in received message" }
+                    XCTAssertTrue(sender.isBot)
+
+                    guard let doc = message.document else { throw "No document in message sent" }
+                    guard let filename = doc.fileName else { throw "Document has no name" }
+                    XCTAssertEqual(filename, "document_test.txt")
+                    XCTAssertEqual(message.caption, "Wow test")
+
+                    bot!.send(
+                        document: .reference(doc.fileId),
+                        to:       owner
+                    ) {
+                        secondResult in
+
+                        expectation.fulfill()
+                        test {
+                            try secondResult.onFailure { throw "Sending doesn't fail with error: \($0)" }
+
+                            guard let secondMessage = secondResult.value else {
+                                throw "There is message in result"
+                            }
+
+                            guard let secondDoc = secondMessage.document else { throw "No document in message sent" }
+                            guard let secondFilename = secondDoc.fileName else { throw "Document has no name" }
+                            XCTAssertEqual(secondFilename, "document_test.txt")
+                            XCTAssertNil(message.text)
+                        }
+                    }
                 }
             }
         }
