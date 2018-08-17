@@ -22,12 +22,23 @@ public enum Receiver: Encodable, ExpressibleByStringLiteral, ExpressibleByIntege
             if let intFromString = Int64(x) {
                 self = .id(intFromString)
             } else {
-                self = .channelName(x)
+                self = .channelName(Receiver.normalizedChannelName(x))
             }
 
         default:
             return nil
         }
+    }
+
+    var data: Data? {
+        switch self {
+        case .id(let id):            return "\(id)".data(using: .utf8, allowLossyConversion: false)
+        case .channelName(let name): return name.data(using: .utf8, allowLossyConversion: false)
+        }
+    }
+
+    static func normalizedChannelName(_ name: String) -> String {
+        return name.hasPrefix("@") ? name : ("@" + name)
     }
 
 
@@ -42,9 +53,7 @@ public enum Receiver: Encodable, ExpressibleByStringLiteral, ExpressibleByIntege
             try container.encode(id)
 
         case .channelName(let username):
-            try container.encode(
-                username.hasPrefix("@") ? username : ("@" + username)
-            )
+            try container.encode(username)
         }
     }
 
@@ -52,7 +61,7 @@ public enum Receiver: Encodable, ExpressibleByStringLiteral, ExpressibleByIntege
     // MARK: - ExpressibleByStringLiteral
 
     public init(stringLiteral value: String) {
-        self = .channelName(value)
+        self = .channelName(Receiver.normalizedChannelName(value))
     }
 
 
