@@ -6,6 +6,7 @@ import Foundation
 
 enum APIMethodError: Error {
     case baseUrlCompositionFailure
+    case stringEncodingFailed(String)
 }
 
 struct APIMethod {
@@ -59,7 +60,7 @@ struct APIMethod {
 }
 
 public enum DocumentToSend {
-    case data(Data)
+    case file(name: String, data: Data)
     case reference(String)
 }
 
