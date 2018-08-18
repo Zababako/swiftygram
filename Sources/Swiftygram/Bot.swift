@@ -38,6 +38,32 @@ public protocol Bot: AnyObject {
     func subscribeToUpdates(handler: @escaping (Result<[Update]>) -> Void) -> SubscriptionHolder
 }
 
+public struct Swiftygram {
+
+    public static func makeBot(
+        configuration:        URLSessionConfiguration,
+        token:                Token,
+        updateRecoveryTime:   TimeInterval,
+        delegateQueue:        DispatchQueue,
+        initialUpdatesOffset: Update.ID?
+    ) -> Bot {
+
+        let api = APIClient(configuration: configuration)
+
+        let bot = SwiftyBot(
+            api:            api,
+            pollingTimeout: configuration.timeoutIntervalForRequest,
+            token:          token,
+            delegateQueue:  delegateQueue,
+            initialOffset:  initialUpdatesOffset
+        )
+
+        bot.updateErrorRecoveryTime(updateRecoveryTime)
+
+        return bot
+    }
+}
+
 
 
 
