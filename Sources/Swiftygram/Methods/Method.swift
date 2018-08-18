@@ -105,6 +105,24 @@ public struct InlineKeyboardMarkup: Encodable {
         public let callbackGame: String?
 
         public let pay: Bool?
+
+        public init(
+            text:                         String,
+            url:                          String? = nil,
+            callbackData:                 String? = nil,
+            switchInlineQuery:            String? = nil,
+            switchInlineQueryCurrentChat: String? = nil,
+            callbackGame:                 String? = nil,
+            pay:                          Bool?   = nil
+        ) {
+            self.text                         = text
+            self.url                          = url
+            self.callbackData                 = callbackData
+            self.switchInlineQuery            = switchInlineQuery
+            self.switchInlineQueryCurrentChat = switchInlineQueryCurrentChat
+            self.callbackGame                 = callbackGame
+            self.pay                          = pay
+        }
     }
 }
 
@@ -114,6 +132,18 @@ public struct ReplyKeyboardMarkup: Encodable {
     public let resizeKeyboard:  Bool?
     public let oneTimeKeyboard: Bool?
     public let selective:       Bool?
+
+    public init(
+        keyboard:        [[KeyboardButton]],
+        resizeKeyboard:  Bool? = nil,
+        oneTimeKeyboard: Bool? = nil,
+        selective:       Bool? = nil
+    ) {
+        self.keyboard        = keyboard
+        self.resizeKeyboard  = resizeKeyboard
+        self.oneTimeKeyboard = oneTimeKeyboard
+        self.selective       = selective
+    }
 }
 
 /// https://core.telegram.org/bots/api#keyboardbutton
@@ -121,18 +151,34 @@ public struct KeyboardButton: Encodable {
     public let text:            String
     public let requestContact:  Bool?
     public let requestLocation: Bool?
+
+    public init(text: String, requestContact: Bool? = nil, requestLocation: Bool? = nil) {
+        self.text            = text
+        self.requestContact  = requestContact
+        self.requestLocation = requestLocation
+    }
 }
 
 /// https://core.telegram.org/bots/api#replykeyboardremove
 public struct ReplyKeyboardRemove: Encodable {
-    public let removeKeyboard: Bool = true
+    public let removeKeyboard: Bool
     public let selective:      Bool?
+
+    public init(removeKeyboard: Bool = true, selective: Bool? = nil) {
+        self.removeKeyboard = removeKeyboard
+        self.selective      = selective
+    }
 }
 
 /// https://core.telegram.org/bots/api#forcereply
 public struct ForceReply: Encodable {
-    public let forceReply: Bool = true
+    public let forceReply: Bool
     public let selective:  Bool?
+
+    public init(forceReply: Bool = true, selective: Bool? = nil) {
+        self.forceReply = forceReply
+        self.selective  = selective
+    }
 }
 
 
