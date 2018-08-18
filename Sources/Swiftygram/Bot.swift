@@ -53,7 +53,7 @@ final class SwiftyBot: Bot {
 
     private let pollingTimeout: TimeInterval
 
-    private var errorRecoveryTime: TimeInterval = 1
+    private var errorRecoveryTime: TimeInterval = 10
     private var offset: Update.ID?
     private var subscriptionsRegistry: [WeakBox<Holder> : (Result<[Update]>) -> Void] = [:] {
         didSet {
@@ -232,7 +232,14 @@ final class SwiftyBot: Bot {
                 }
             }
         } catch {
+
             propagateUpdateResult(.failure(error))
+
+            guard isUpdating else { return }
+
+            queue.asyncAfter(seconds: errorRecoveryTime) {
+                self.checkUpdates()
+            }
         }
     }
 }
