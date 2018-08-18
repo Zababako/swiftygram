@@ -226,9 +226,7 @@ final class SwiftyBot: Bot {
                         ifFailure: self.errorRecoveryTime
                     )
 
-                    queue.asyncAfter(
-                        deadline: .now() + .nanoseconds(Int(delay * Double(NSEC_PER_SEC)))
-                    ) {
+                    queue.asyncAfter(seconds: delay) {
                         self.checkUpdates()
                     }
                 }

@@ -16,3 +16,21 @@ func readFromEnvironment(_ identifier: String) -> String? {
 
     return nil
 }
+
+extension DispatchQueue {
+
+    func asyncAfter(
+        seconds:      TimeInterval,
+        qos:          DispatchQoS = .default,
+        flags:        DispatchWorkItemFlags = [],
+        execute work: @escaping @convention(block) () -> Swift.Void
+    ) {
+        asyncAfter(
+            deadline: .now() + .nanoseconds(Int(seconds * Double(NSEC_PER_SEC))),
+            qos:      qos,
+            flags:    flags,
+            execute:  work
+        )
+    }
+}
+

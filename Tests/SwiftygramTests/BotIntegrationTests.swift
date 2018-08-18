@@ -131,7 +131,7 @@ final class BotIntegrationTests: XCTestCase {
 	
 	func test_Bot_sends_file_to_its_owner_at_first_by_content_then_by_id() {
 
-        testExpectation("Sending finishes", timeout: 5) {
+        testExpectation("Two sending finishes", timeout: 5) {
             expectation in
 
             let document = "Wow doc \(Date())".data(using: .utf8)!
