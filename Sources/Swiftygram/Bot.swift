@@ -7,7 +7,7 @@ import Foundation
 
 public typealias Token = String
 
-public struct Swiftygram {
+public struct Factory {
 
     public static func makeBot(
         configuration:        URLSessionConfiguration,
