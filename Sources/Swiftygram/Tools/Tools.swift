@@ -4,7 +4,7 @@
 
 import Foundation
 
-func readFromEnvironment(_ identifier: String) -> String? {
+public func readFromEnvironment(_ identifier: String) -> String? {
 
     if let value = ProcessInfo.processInfo.environment[identifier] {
         return value
