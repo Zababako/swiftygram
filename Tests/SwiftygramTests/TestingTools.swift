@@ -22,7 +22,7 @@ extension XCTestCase {
         action:        (XCTestExpectation) throws -> ()
     )  {
         let exp = expectation(description: description)
-        test { try action(exp) }
+        test(file: file, line: line) { try action(exp) }
         waitForExpectations(timeout: timeout)
     }
 }
