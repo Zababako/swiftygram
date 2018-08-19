@@ -7,72 +7,33 @@ import Foundation
 
 public typealias Token = String
 
-public protocol SubscriptionHolder: AnyObject {}
-
-public protocol Bot: AnyObject {
-
-    func updateErrorRecoveryTime(_ time: TimeInterval)
-
-    func getMe(onComplete: @escaping (Result<User>) -> Void)
-    func send(
-        message:             String,
-        to:                  Receiver,
-        parseMode:           ParseMode?,
-        disableNotification: Bool?,
-        replyToMessageId:    Message.ID?,
-        replyMarkup:         ReplyMarkup?,
-        onComplete:          @escaping (Result<Message>) -> Void
-    )
-    func send(
-        document:            DocumentToSend,
-        to:                  Receiver,
-        thumb:               DocumentToSend?,
-        caption:             String?,
-        parseMode:           ParseMode?,
-        disableNotification: Bool?,
-        replyToMessageId:    Message.ID?,
-        replyMarkup:         ReplyMarkup?,
-        onComplete:          @escaping (Result<Message>) -> Void
-    )
-
-    func subscribeToUpdates(handler: @escaping (Result<[Update]>) -> Void) -> SubscriptionHolder
-}
-
 public struct Swiftygram {
 
     public static func makeBot(
         configuration:        URLSessionConfiguration,
         token:                Token,
-        updateRecoveryTime:   TimeInterval,
         delegateQueue:        DispatchQueue,
         initialUpdatesOffset: Update.ID?
     ) -> Bot {
 
-        let api = APIClient(configuration: configuration)
-
-        let bot = SwiftyBot(
-            api:            api,
+        return Bot(
+            api:            APIClient(configuration: configuration),
             pollingTimeout: configuration.timeoutIntervalForRequest,
             token:          token,
             delegateQueue:  delegateQueue,
             initialOffset:  initialUpdatesOffset
         )
-
-        bot.updateErrorRecoveryTime(updateRecoveryTime)
-
-        return bot
     }
 }
 
+public protocol SubscriptionHolder: AnyObject {}
 
-
-
-private class Holder: SubscriptionHolder {}
-
-final class SwiftyBot: Bot {
+public final class Bot {
 
 
     // MARK: - Private properties
+
+    private class Holder: SubscriptionHolder {}
 
     private let api:   API
     private let token: Token
@@ -102,7 +63,7 @@ final class SwiftyBot: Bot {
     // MARK: - Initialization / Deinitialization
 
     /// parameter pollingTimeout - should be the same as timeout in URLSessionConfiguration in API
-    init(
+    internal init(
         api:            API,
         pollingTimeout: TimeInterval,
         token:          Token,
@@ -119,11 +80,11 @@ final class SwiftyBot: Bot {
 
     // MARK: - Bot
 
-    func updateErrorRecoveryTime(_ time: TimeInterval) {
+    public func updateErrorRecoveryTime(_ time: TimeInterval) {
         queue.async { self.errorRecoveryTime = time }
     }
 
-    func subscribeToUpdates(handler: @escaping (Result<[Update]>) -> Void) -> SubscriptionHolder {
+    public func subscribeToUpdates(handler: @escaping (Result<[Update]>) -> Void) -> SubscriptionHolder {
 
         let holder = Holder()
 
@@ -134,7 +95,7 @@ final class SwiftyBot: Bot {
         return holder
     }
 
-    func getMe(onComplete: @escaping (Result<User>) -> Void) {
+    public func getMe(onComplete: @escaping (Result<User>) -> Void) {
 
         let handler = { result in self.delegateQueue.async { onComplete(result) } }
 
@@ -146,7 +107,7 @@ final class SwiftyBot: Bot {
         }
     }
 
-    func send(
+    public func send(
         message:             String,
         to:                  Receiver,
         parseMode:           ParseMode?   = nil,
@@ -174,7 +135,7 @@ final class SwiftyBot: Bot {
         }
     }
 
-    func send(
+    public func send(
         document:            DocumentToSend,
         to:                  Receiver,
         thumb:               DocumentToSend? = nil,

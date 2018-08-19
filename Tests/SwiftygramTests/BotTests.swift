@@ -20,7 +20,7 @@ final class BotTests: XCTestCase {
 
         apiMock = APIMock()
 
-        bot = SwiftyBot(
+        bot = Bot(
             api:            apiMock,
             pollingTimeout: 10,
             token:          "123",

@@ -10,7 +10,7 @@ import XCTest
 
 final class BotIntegrationTests: XCTestCase {
 
-    var bot: SwiftyBot!
+    var bot: Bot!
 
     var updatesHolder: SubscriptionHolder?
 
@@ -23,7 +23,7 @@ final class BotIntegrationTests: XCTestCase {
             XCTFail("Test is not prepared - no 'TEST_BOT_TOKEN' is not set")
         }
 
-        bot = SwiftyBot(
+        bot = Bot(
             api:            APIClient(configuration: .ephemeral),
             pollingTimeout: 10,
             token:          token ?? "abc",
