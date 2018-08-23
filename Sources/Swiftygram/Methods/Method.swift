@@ -147,16 +147,35 @@ public struct ReplyKeyboardMarkup: Encodable {
 }
 
 /// https://core.telegram.org/bots/api#keyboardbutton
-public struct KeyboardButton: Encodable {
-    public let text:            String
-    public let requestContact:  Bool?
-    public let requestLocation: Bool?
+public enum KeyboardButton: Encodable {
+    case plain(String)
+    case requestContact(String)
+    case requestLocation(String)
 
-    public init(text: String, requestContact: Bool? = nil, requestLocation: Bool? = nil) {
-        self.text            = text
-        self.requestContact  = requestContact
-        self.requestLocation = requestLocation
+    public func encode(to encoder: Encoder) throws {
+
+        switch self {
+        case .plain(let text):
+            var container = encoder.singleValueContainer()
+            try container.encode(text)
+        case .requestLocation(let text):
+            var container = encoder.container(keyedBy: Keys.self)
+            try container.encode(true, forKey: .requestLocation)
+            try container.encode(text, forKey: .text)
+        case .requestContact(let text):
+            var container = encoder.container(keyedBy: Keys.self)
+            try container.encode(true, forKey: .requestContact)
+            try container.encode(text, forKey: .text)
+        }
+
     }
+
+    private enum Keys: String, CodingKey {
+        case text
+        case requestContact
+        case requestLocation
+    }
+
 }
 
 /// https://core.telegram.org/bots/api#replykeyboardremove

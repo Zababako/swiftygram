@@ -185,6 +185,40 @@ final class BotIntegrationTests: XCTestCase {
             }
         }
     }
+
+    func test_Bot_sends_message_with_keyboard_reply() {
+
+        testExpectation("Sending finishes", timeout: 60) {
+            expectation in
+
+            let markup = ReplyMarkup.replyKeyboard(
+                ReplyKeyboardMarkup(keyboard: [[
+                    .plain("Push me"),
+                    .requestContact("Contact?"),
+                    .requestLocation("Location?")
+                ]])
+            )
+
+            bot.send(
+                message:     "Running tests (\(Date()))\nKeyboard reply expected",
+                to:          try readOwner(),
+                replyMarkup: markup
+            ) {
+                result in
+
+                expectation.fulfill()
+
+                test {
+                    try result.onFailure { throw "Sending doesn't fail with error: \($0)" }
+                              .onSuccess { message in
+                                  guard let sender = message.from else { throw "No user in received message" }
+                                  XCTAssertTrue(sender.isBot)
+                              }
+                }
+            }
+        }
+
+    }
 }
 
 func readOwner() throws -> Receiver {
