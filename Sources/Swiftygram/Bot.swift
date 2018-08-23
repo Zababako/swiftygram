@@ -16,8 +16,10 @@ public struct Factory {
         initialUpdatesOffset: Update.ID?
     ) -> Bot {
 
+        let api = APIClient(configuration: configuration)
+
         return Bot(
-            api:            APIClient(configuration: configuration),
+            api:            APILimits(api: api, minimalInterval: 1),
             pollingTimeout: configuration.timeoutIntervalForRequest,
             token:          token,
             delegateQueue:  delegateQueue,
