@@ -197,15 +197,23 @@ public final class Bot {
                 (result: Result<[Update]>) in
 
                 queue.async {
-                    result.onSuccess {
+                    result
+                        .onSuccess {
                         updates in
 
                         if let last = updates.last {
                             self.offset = last.updateId.next
                         }
-                    }
 
-                    self.propagateUpdateResult(result)
+                        self.propagateUpdateResult(result)
+                    }
+                    .onFailure {
+                        error in
+
+                        if error.isNotTimeout {
+                            self.propagateUpdateResult(result)
+                        }
+                    }
 
                     guard self.isUpdating else { return }
 
@@ -232,3 +240,14 @@ public final class Bot {
     }
 }
 
+private extension Error {
+
+    var isTimeout: Bool {
+        let nsError = self as NSError
+        return nsError.domain == NSURLErrorDomain && nsError.code == -1001
+    }
+
+    var isNotTimeout: Bool {
+        return !isTimeout
+    }
+}
