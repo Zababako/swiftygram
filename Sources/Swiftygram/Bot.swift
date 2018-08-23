@@ -108,13 +108,14 @@ public final class Bot {
     }
 
     public func send(
-        message:             String,
-        to:                  Receiver,
-        parseMode:           ParseMode?   = nil,
-        disableNotification: Bool?        = nil,
-        replyToMessageId:    Message.ID?  = nil,
-        replyMarkup:         ReplyMarkup? = nil,
-        onComplete:          @escaping (Result<Message>) -> Void
+        message:               String,
+        to:                    Receiver,
+        parseMode:             ParseMode?   = nil,
+        disableWebPagePreview: Bool?        = nil,
+        disableNotification:   Bool?        = nil,
+        replyToMessageId:      Message.ID?  = nil,
+        replyMarkup:           ReplyMarkup? = nil,
+        onComplete:            @escaping (Result<Message>) -> Void
     ) {
 
         let handler = { result in self.delegateQueue.async { onComplete(result) } }
@@ -125,7 +126,7 @@ public final class Bot {
                     chatId: 			   to,
                     text: 				   message,
                     parseMode: 			   parseMode,
-                    disableWebPagePreview: nil, // TODO: add to protocol
+                    disableWebPagePreview: disableWebPagePreview,
                     disableNotification:   disableNotification,
                     replyToMessageId:      replyToMessageId,
                     replyMarkup:           replyMarkup
