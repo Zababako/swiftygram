@@ -49,4 +49,25 @@ final class LimiterTests: XCTestCase {
 
         waitForExpectations(timeout: 0.5)
     }
+
+    func test_only_N_first_actions_are_executed_when_limit_is_reached() {
+
+        let maxQuantity = 10
+
+        setUp(limit: Limiter.Limit(duration: 60, quantity: maxQuantity))
+
+        var counter: [Int] = []
+        for i in 0..<1000 {
+            XCTAssert(Thread.isMainThread, "Test setup failed - mutations should happen on one thread")
+            limiter.execute { counter.append(i) }
+        }
+
+        let secondPassed = expectation(description: "Second passes")
+        DispatchQueue.main.asyncAfter(seconds: 1) {
+            secondPassed.fulfill()
+            XCTAssertEqual(counter.count, maxQuantity)
+        }
+
+        waitForExpectations(timeout: 2)
+    }
 }

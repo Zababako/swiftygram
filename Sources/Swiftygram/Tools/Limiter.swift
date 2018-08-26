@@ -96,7 +96,7 @@ final internal class Limiter {
 
     // MARK: - Private Methods
 
-    func pressingLimits() -> Set<Limit> {
-        return Set(limits.filter { $0.quantity < pipe.count })
+    private func pressingLimits() -> Set<Limit> {
+        return Set(limits.filter { $0.quantity <= pipe.count })
     }
 }
