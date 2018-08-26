@@ -27,7 +27,7 @@ public struct Factory {
         let limiter = Limiter(limits: Set(limits), targetQueue: delegateQueue)
 
         return Bot(
-            api:            APILimits(api: api, limiter: limiter),
+            api:            DOSProtectedAPI(api: api, limiter: limiter),
             pollingTimeout: configuration.timeoutIntervalForRequest,
             token:          token,
             delegateQueue:  delegateQueue,

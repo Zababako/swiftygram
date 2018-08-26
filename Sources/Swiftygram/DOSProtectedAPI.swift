@@ -5,7 +5,7 @@
 import Foundation
 
 
-final internal class APILimits: API {
+final internal class DOSProtectedAPI: API {
 
 
     // MARK: - Private properties
