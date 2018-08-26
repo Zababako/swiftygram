@@ -18,8 +18,16 @@ public struct Factory {
 
         let api = APIClient(configuration: configuration)
 
+        /// API limits from [FAQ page](https://core.telegram.org/bots/faq#my-bot-is-hitting-limits-how-do-i-avoid-this)
+        let limits = [
+            Limiter.Limit(duration: 1,  quantity: 1),
+            Limiter.Limit(duration: 60, quantity: 20)
+        ]
+
+        let limiter = Limiter(limits: Set(limits), targetQueue: delegateQueue)
+
         return Bot(
-            api:            APILimits(api: api, minimalInterval: 1),
+            api:            APILimits(api: api, limiter: limiter),
             pollingTimeout: configuration.timeoutIntervalForRequest,
             token:          token,
             delegateQueue:  delegateQueue,
