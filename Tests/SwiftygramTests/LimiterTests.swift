@@ -14,7 +14,7 @@ final class LimiterTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        limiter = Limiter()
+        limiter = Limiter(targetQueue: .main)
     }
 
     func setUp(limit: Limiter.Limit) {
@@ -56,16 +56,42 @@ final class LimiterTests: XCTestCase {
 
         setUp(limit: Limiter.Limit(duration: 60, quantity: maxQuantity))
 
-        var counter: [Int] = []
+		var counter: Set<Int> = Set<Int>()
         for i in 0..<1000 {
             XCTAssert(Thread.isMainThread, "Test setup failed - mutations should happen on one thread")
-            limiter.execute { counter.append(i) }
+            limiter.execute { counter.insert(i) }
         }
 
         let secondPassed = expectation(description: "Second passes")
         DispatchQueue.main.asyncAfter(seconds: 1) {
             secondPassed.fulfill()
-            XCTAssertEqual(counter.count, maxQuantity)
+            XCTAssertEqual(counter, Set(0..<maxQuantity))
+        }
+
+        waitForExpectations(timeout: 2)
+    }
+
+    func test_Two_limits_are_both_respected() {
+
+        setUp(
+            limits: [
+                Limiter.Limit(duration: 60, quantity: 10),
+				Limiter.Limit(duration: 20, quantity: 5),
+            ]
+        )
+
+        var counter: Set<Int> = Set<Int>()
+        for i in 0..<100 {
+            XCTAssert(Thread.isMainThread, "Test setup failed - mutations should happen on one thread")
+            limiter.execute {
+				counter.insert(i)
+			}
+        }
+
+        let secondPassed = expectation(description: "Second passes")
+        DispatchQueue.main.asyncAfter(seconds: 1) {
+            secondPassed.fulfill()
+            XCTAssertEqual(counter, Set(0..<min(5, 10)))
         }
 
         waitForExpectations(timeout: 2)

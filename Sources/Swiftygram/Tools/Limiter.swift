@@ -14,8 +14,7 @@ final internal class Limiter {
     }
 
     private struct WorkItem {
-        let action:    () -> Void
-        let executed:  Bool
+        var action:    (() -> Void)?
         var limitedBy: Set<Limit>
     }
 
@@ -45,18 +44,24 @@ final internal class Limiter {
 
                 guard let limiter = self else { return }
 
-                var indexesToClear: [Int] = []
+                var indexesToClear: Set<Int> = Set<Int>()
 
                 for i in 0..<min(limit.quantity, limiter.pipe.count) {
                     limiter.pipe[i].limitedBy.remove(limit)
 
                     guard limiter.pipe[i].limitedBy.isEmpty else { continue }
 
-                    if !limiter.pipe[i].executed { limiter.pipe[i].action() }
-                    indexesToClear.append(i)
-                }
+                    if let action = limiter.pipe[i].action {
+                        action()
+                        limiter.pipe[i].action = nil
+                    }
 
-                indexesToClear.forEach { limiter.pipe.remove(at: $0) }
+                    indexesToClear.insert(i)
+                }
+				
+				indexesToClear
+					.sorted(by: >)
+					.forEach { limiter.pipe.remove(at: $0) }
             }
 
             return source
@@ -80,17 +85,20 @@ final internal class Limiter {
         }
 
         queue.async {
-
+			
             let currentLimits = self.pressingLimits()
+			let shouldExecute = currentLimits.isEmpty
 
-            if currentLimits.isEmpty {
-                action()
-            }
+            if shouldExecute { action() }
 
-            self.pipe.append(
-               WorkItem(action: action, executed: currentLimits.isEmpty, limitedBy: currentLimits)
-            )
-        }
+			self.pipe.append(
+				WorkItem(
+					action:    shouldExecute ? nil : action,
+					limitedBy: currentLimits
+				)
+			)
+			
+		}
     }
 
 
