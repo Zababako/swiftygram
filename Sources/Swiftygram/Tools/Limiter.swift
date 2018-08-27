@@ -11,6 +11,10 @@ final internal class Limiter {
     internal struct Limit: Hashable {
         let duration: TimeInterval
         let quantity: Int
+
+        var hashValue: Int {
+            return duration.hashValue &+ quantity.hashValue
+        }
     }
 
     private struct WorkItem {
@@ -108,4 +112,8 @@ final internal class Limiter {
     private func pressingLimits() -> Set<Limit> {
         return Set(limits.filter { $0.quantity <= pipe.count })
     }
+}
+
+internal func ==(lhs: Limiter.Limit, rhs: Limiter.Limit) -> Bool {
+    return lhs.duration == rhs.duration && lhs.quantity == rhs.quantity
 }
