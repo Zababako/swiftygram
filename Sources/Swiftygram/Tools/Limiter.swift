@@ -38,7 +38,7 @@ final internal class Limiter {
             limit in
 
             let source = DispatchSource.makeTimerSource(queue: queue)
-            source.schedule(deadline: .now(), repeating: limit.duration)
+            source.schedule(deadline: .now() + limit.duration, repeating: limit.duration)
             source.setEventHandler {
                 [weak self] in
 
@@ -85,11 +85,16 @@ final internal class Limiter {
         }
 
         queue.async {
+
+            print("Limiter pipe length: \(self.pipe.count)")
 			
             let currentLimits = self.pressingLimits()
 			let shouldExecute = currentLimits.isEmpty
 
-            if shouldExecute { action() }
+            if shouldExecute {
+                print("Limiter should execute on start")
+                action()
+            }
 
 			self.pipe.append(
 				WorkItem(
@@ -97,7 +102,6 @@ final internal class Limiter {
 					limitedBy: currentLimits
 				)
 			)
-			
 		}
     }
 
