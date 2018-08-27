@@ -86,13 +86,10 @@ final internal class Limiter {
 
         queue.async {
 
-            print("Limiter pipe length: \(self.pipe.count)")
-			
             let currentLimits = self.pressingLimits()
 			let shouldExecute = currentLimits.isEmpty
 
             if shouldExecute {
-                print("Limiter should execute on start")
                 action()
             }
 
