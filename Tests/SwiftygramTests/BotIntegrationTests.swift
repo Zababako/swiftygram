@@ -12,7 +12,7 @@ final class BotIntegrationTests: XCTestCase {
 
     var bot: Bot!
 
-    var updatesHolder: SubscriptionHolder?
+    var subscriptionToken: SubscriptionToken?
 
     override func setUp() {
         super.setUp()
@@ -42,7 +42,11 @@ final class BotIntegrationTests: XCTestCase {
     override func tearDown() {
         super.tearDown()
 
-        updatesHolder = nil
+        if let token = subscriptionToken {
+            bot.unsubscribeFromUpdates(token: token)
+        }
+
+        subscriptionToken = nil
     }
 
     func test_Bot_receives_info_about_itself() {

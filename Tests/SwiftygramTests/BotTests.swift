@@ -12,8 +12,8 @@ final class BotTests: XCTestCase {
 
     var bot: Bot!
 
-    var apiMock: APIMock!
-    var holder: SubscriptionHolder?
+    var apiMock:     APIMock!
+    var token:       SubscriptionToken?
     var targetQueue: DispatchQueue!
 
     override func setUp() {
@@ -34,9 +34,13 @@ final class BotTests: XCTestCase {
     override func tearDown() {
         super.tearDown()
 
+        if let subscribedToken = token {
+            bot.unsubscribeFromUpdates(token: subscribedToken)
+        }
+
         apiMock = nil
         bot     = nil
-        holder  = nil
+        token   = nil
     }
 
     func test_When_first_subscription_happens_updates_start() {
@@ -51,7 +55,7 @@ final class BotTests: XCTestCase {
         updateReceived.assertForOverFulfill = false
         #endif
 
-        holder = bot.subscribeToUpdates {
+        token = bot.subscribeToUpdates {
             _ in
             #if os(Linux)
             if !updateReceivedFlag { updateReceived.fulfill() }
@@ -64,7 +68,7 @@ final class BotTests: XCTestCase {
         waitForExpectations(timeout: 5)
     }
 
-    func test_When_last_holder_is_released_updates_stop() {
+    func test_Updates_do_not_come_after_unsubscription() {
 
 		let updateURL = URL(string: "https://api.telegram.org/bot123/getUpdates")!
 		apiMock.t_storage[updateURL] = .success([Update()])
@@ -72,8 +76,7 @@ final class BotTests: XCTestCase {
 		var counter = 0
 		let timePassesAfterUnsubscription = expectation(description: "Time passes")
 
-		holder = bot.subscribeToUpdates {
-            [targetQueue]
+        token = bot.subscribeToUpdates {
 			result in
 
 			if case .failure(let error) = result {
@@ -83,24 +86,15 @@ final class BotTests: XCTestCase {
 
             assert(Thread.isMainThread)
 			counter += 1
-            print("\(Date().timeIntervalSince1970) Counter increased, now \(counter)")
 			guard counter == 3 else { return }
-            print("\(Date().timeIntervalSince1970) Releasing holder")
 
-			self.holder = nil
+            self.bot!.unsubscribeFromUpdates(token: self.token!)
 
-            targetQueue!.sync {
-
-                let finalCounter = counter
-                print("\(Date().timeIntervalSince1970) Capturing final counter: \(finalCounter)")
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
-                    print("\(Date().timeIntervalSince1970) asserting counter: \(counter)")
-                    timePassesAfterUnsubscription.fulfill()
-                    XCTAssertEqual(counter, finalCounter)
-                }
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
+                timePassesAfterUnsubscription.fulfill()
+                XCTAssertEqual(counter, 3)
             }
-		}
+        }
 		
 		waitForExpectations(timeout: 3)
     }
@@ -110,10 +104,10 @@ final class BotTests: XCTestCase {
 		let updateURL = URL(string: "https://api.telegram.org/bot123/getUpdates")!
 		apiMock.t_storage[updateURL] = .success([Update()])
 
-        let updateHappensThreeTimes = expectation(description: "Updates are received at least three times")
-        var counter = 0
+        let updateHappensManyTimes = expectation(description: "Updates are received at least ten times")
+        var counter                = 0
 
-        holder = bot.subscribeToUpdates {
+        token = bot.subscribeToUpdates {
             result in
 
             if case .failure(let error) = result {
@@ -121,11 +115,13 @@ final class BotTests: XCTestCase {
                 return
             }
 
+            assert(Thread.isMainThread)
+
             counter += 1
 
-            if counter == 3 {
-                updateHappensThreeTimes.fulfill()
-				self.holder = nil
+            if counter == 10 {
+                updateHappensManyTimes.fulfill()
+                self.bot.unsubscribeFromUpdates(token: self.token!)
             }
         }
 
@@ -138,8 +134,8 @@ final class BotTests: XCTestCase {
         apiMock.t_storage[updateURL] = .success([Update(id: 5)])
 
 		let updateRequestReceived = expectation(description: "Mock receives request to getUpdates")
-		
-        holder = bot.subscribeToUpdates {
+
+        token = bot.subscribeToUpdates {
             result in
 
             if case .failure(let error) = result {
@@ -155,8 +151,8 @@ final class BotTests: XCTestCase {
                     XCTFail("\(getUpdatesDictionary["offset"]!) is Int64")
                     return
                 }
-				
-				self.holder = nil
+
+                self.bot.unsubscribeFromUpdates(token: self.token!)
 
 				updateRequestReceived.fulfill()
                 XCTAssertEqual(offset, 6)
