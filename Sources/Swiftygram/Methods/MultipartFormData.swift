@@ -224,6 +224,7 @@ internal struct MultipartFormData {
 	///
 	/// - parameter fileURL: The URL of the file whose content will be encoded into the multipart form data.
 	/// - parameter name:    The name to associate with the file content in the `Content-Disposition` HTTP header.
+    @available(Linux, unavailable)
 	internal mutating func append(_ fileURL: URL, withName name: String) {
 		let fileName = fileURL.lastPathComponent
 		let pathExtension = fileURL.pathExtension
@@ -249,6 +250,7 @@ internal struct MultipartFormData {
 	/// - parameter name:     The name to associate with the file content in the `Content-Disposition` HTTP header.
 	/// - parameter fileName: The filename to associate with the file content in the `Content-Disposition` HTTP header.
 	/// - parameter mimeType: The MIME type to associate with the file content in the `Content-Type` HTTP header.
+    @available(Linux, unavailable)
 	internal mutating func append(_ fileURL: URL, withName name: String, fileName: String, mimeType: String) {
 		let headers = contentHeaders(withName: name, fileName: fileName, mimeType: mimeType)
 		
@@ -563,7 +565,8 @@ internal struct MultipartFormData {
 
 	
 	// MARK: - Private - Mime Type
-	
+
+    @available(Linux, unavailable)
 	private func mimeType(forPathExtension pathExtension: String) -> String {
 		if
 			let id = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExtension as CFString, nil)?.takeRetainedValue(),
