@@ -253,8 +253,13 @@ public final class Bot {
 private extension Error {
 
     var isTimeout: Bool {
+    #if os(Linux)
+        guard let nsError = self as? NSError else { return false }
+        return nsError.domain == NSURLErrorDomain && nsError.code == -1001
+    #else
         let nsError = self as NSError
         return nsError.domain == NSURLErrorDomain && nsError.code == -1001
+    #endif
     }
 
     var isNotTimeout: Bool {
