@@ -17,7 +17,14 @@ final class APIIntegrationTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        api = APIClient(configuration: .ephemeral)
+        let configuration: URLSessionConfiguration
+        #if os(Linux)
+        configuration = .default
+        #else
+        configuration = .ephemeral
+        #endif
+
+        api = APIClient(configuration: configuration)
     }
 
     func test_API_parses_error() {

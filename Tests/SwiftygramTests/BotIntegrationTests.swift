@@ -23,8 +23,15 @@ final class BotIntegrationTests: XCTestCase {
             XCTFail("Test is not prepared - no 'TEST_BOT_TOKEN' is not set")
         }
 
+        let configuration: URLSessionConfiguration
+        #if os(Linux)
+        configuration = .default
+        #else
+        configuration = .ephemeral
+        #endif
+
         bot = Bot(
-            api:            APIClient(configuration: .ephemeral),
+            api:            APIClient(configuration: configuration),
             pollingTimeout: 10,
             token:          token ?? "abc",
             delegateQueue:  .main
