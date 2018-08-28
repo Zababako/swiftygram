@@ -28,6 +28,14 @@ final class BotTests: XCTestCase {
         )
     }
 
+    override func tearDown() {
+        super.tearDown()
+
+        apiMock = nil
+        bot     = nil
+        holder  = nil
+    }
+
     func test_When_first_subscription_happens_updates_start() {
 
         let updateURL = URL(string: "https://api.telegram.org/bot123/getUpdates")!
