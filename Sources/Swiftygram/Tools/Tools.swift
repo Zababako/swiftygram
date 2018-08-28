@@ -26,7 +26,7 @@ extension DispatchQueue {
         execute work: @escaping @convention(block) () -> Swift.Void
     ) {
         asyncAfter(
-            deadline: .now() + .nanoseconds(Int(seconds * Double(NSEC_PER_SEC))),
+            deadline: .now() + seconds,
             qos:      qos,
             flags:    flags,
             execute:  work
