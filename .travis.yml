@@ -1,7 +1,7 @@
 env:
   global:
-    - SWIFT_BRANCH=development
-    - SWIFT_VERSION=swift-DEVELOPMENT-SNAPSHOT-2018-08-26-a
+    - SWIFT_BRANCH=swift-4.1-branch
+    - SWIFT_VERSION=swift-4.1-DEVELOPMENT-SNAPSHOT-2018-05-31-a
 matrix:
   include:
     - os: linux
