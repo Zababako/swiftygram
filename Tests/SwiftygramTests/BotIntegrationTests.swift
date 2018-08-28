@@ -109,7 +109,7 @@ final class BotIntegrationTests: XCTestCase {
             }
         }
 
-        waitForExpectations(timeout: 3)
+        waitForExpectations(timeout: 5)
     }
 
     func test_Bot_sends_message_to_its_owner() {
