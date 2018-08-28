@@ -80,7 +80,7 @@ final class BotTests: XCTestCase {
 		let updateURL = URL(string: "https://api.telegram.org/bot123/getUpdates")!
 		apiMock.t_storage[updateURL] = .success([Update()])
 
-        let updateHappensThreeTimes = expectation(description: "Updates are received three times")
+        let updateHappensThreeTimes = expectation(description: "Updates are received at least three times")
         var counter = 0
 
         holder = bot.subscribeToUpdates {
@@ -93,7 +93,7 @@ final class BotTests: XCTestCase {
 
             counter += 1
 
-            if counter >= 3 {
+            if counter == 3 {
                 updateHappensThreeTimes.fulfill()
 				self.holder = nil
             }
