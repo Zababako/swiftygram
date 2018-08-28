@@ -54,14 +54,15 @@ final class BotTests: XCTestCase {
 
 		holder = bot.subscribeToUpdates {
 			result in
-			
+
 			if case .failure(let error) = result {
 				XCTFail("Update doesn't fail with error: \(error)")
 				return
 			}
-			
+
+            assert(Thread.isMainThread)
 			counter += 1
-			guard counter >= 3 else { return }
+			guard counter == 3 else { return }
 			
 			self.holder = nil
 			
