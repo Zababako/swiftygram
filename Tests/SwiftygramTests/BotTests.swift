@@ -34,11 +34,20 @@ final class BotTests: XCTestCase {
         apiMock.t_storage[updateURL] = .success([Update()])
 
 		let updateReceived = expectation(description: "Update received")
-		updateReceived.assertForOverFulfill = false
+        #if os(Linux)
+        var updateReceivedFlag = false
+        #else
+        updateReceived.assertForOverFulfill = false
+        #endif
 
         holder = bot.subscribeToUpdates {
             _ in
+            #if os(Linux)
+            if !updateReceivedFlag { updateReceived.fulfill() }
+            updateReceivedFlag = true
+            #else
             updateReceived.fulfill()
+            #endif
         }
 
         waitForExpectations(timeout: 5)
