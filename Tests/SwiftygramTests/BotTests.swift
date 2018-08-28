@@ -83,15 +83,19 @@ final class BotTests: XCTestCase {
 
             assert(Thread.isMainThread)
 			counter += 1
+            print("\(Date().timeIntervalSince1970) Counter increased, now \(counter)")
 			guard counter == 3 else { return }
+            print("\(Date().timeIntervalSince1970) Releasing holder")
 
 			self.holder = nil
 
             targetQueue!.sync {
 
                 let finalCounter = counter
+                print("\(Date().timeIntervalSince1970) Capturing final counter: \(finalCounter)")
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
+                    print("\(Date().timeIntervalSince1970) asserting counter: \(counter)")
                     timePassesAfterUnsubscription.fulfill()
                     XCTAssertEqual(counter, finalCounter)
                 }

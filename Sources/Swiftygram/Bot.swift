@@ -45,7 +45,11 @@ public final class Bot {
 
     // MARK: - Private properties
 
-    private class Holder: SubscriptionHolder {}
+    private class Holder: SubscriptionHolder {
+        deinit {
+            print("Holder got deallocated")
+        }
+    }
 
     private let api:   API
     private let token: Token
