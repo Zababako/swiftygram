@@ -34,6 +34,7 @@ final class BotIntegrationTests: XCTestCase {
             api:            APIClient(configuration: configuration),
             pollingTimeout: 10,
             token:          token ?? "abc",
+            targetQueue:    nil,
             delegateQueue:  .main
         )
     }

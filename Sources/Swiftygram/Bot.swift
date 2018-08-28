@@ -12,8 +12,9 @@ public struct Factory {
     public static func makeBot(
         configuration:        URLSessionConfiguration,
         token:                Token,
+        targetQueue:          DispatchQueue? = nil,
         delegateQueue:        DispatchQueue,
-        initialUpdatesOffset: Update.ID?
+        initialUpdatesOffset: Update.ID? = nil
     ) -> Bot {
 
         let api = APIClient(configuration: configuration)
@@ -30,6 +31,7 @@ public struct Factory {
             api:            DOSProtectedAPI(api: api, limiter: limiter),
             pollingTimeout: configuration.timeoutIntervalForRequest,
             token:          token,
+            targetQueue:    targetQueue,
             delegateQueue:  delegateQueue,
             initialOffset:  initialUpdatesOffset
         )
@@ -66,7 +68,7 @@ public final class Bot {
         }
     }
 
-    private let queue: DispatchQueue = DispatchQueue(label: "swiftygram.bot")
+    private let queue: DispatchQueue
     private let delegateQueue: DispatchQueue
 
 
@@ -77,12 +79,14 @@ public final class Bot {
         api:            API,
         pollingTimeout: TimeInterval,
         token:          Token,
+        targetQueue:    DispatchQueue?,
         delegateQueue:  DispatchQueue,
         initialOffset:  Update.ID? = nil
     ) {
         self.api            = api
         self.pollingTimeout = pollingTimeout
         self.token          = token
+        self.queue          = DispatchQueue(label: "com.zababako.swiftygram.bot", target: targetQueue)
         self.delegateQueue  = delegateQueue
         self.offset         = initialOffset
     }

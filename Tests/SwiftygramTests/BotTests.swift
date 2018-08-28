@@ -24,6 +24,7 @@ final class BotTests: XCTestCase {
             api:            apiMock,
             pollingTimeout: 10,
             token:          "123",
+            targetQueue:    nil,
             delegateQueue:  .main
         )
     }
