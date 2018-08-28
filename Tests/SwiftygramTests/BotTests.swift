@@ -14,17 +14,19 @@ final class BotTests: XCTestCase {
 
     var apiMock: APIMock!
     var holder: SubscriptionHolder?
+    var targetQueue: DispatchQueue!
 
     override func setUp() {
         super.setUp()
 
         apiMock = APIMock()
+        targetQueue = DispatchQueue(label: "com.zababako.bot.tests")
 
         bot = Bot(
             api:            apiMock,
             pollingTimeout: 10,
             token:          "123",
-            targetQueue:    nil,
+            targetQueue:    targetQueue,
             delegateQueue:  .main
         )
     }
@@ -71,6 +73,7 @@ final class BotTests: XCTestCase {
 		let timePassesAfterUnsubscription = expectation(description: "Time passes")
 
 		holder = bot.subscribeToUpdates {
+            [targetQueue]
 			result in
 
 			if case .failure(let error) = result {
@@ -81,13 +84,18 @@ final class BotTests: XCTestCase {
             assert(Thread.isMainThread)
 			counter += 1
 			guard counter == 3 else { return }
-			
+
 			self.holder = nil
-			
-			DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
-				timePassesAfterUnsubscription.fulfill()
-				XCTAssertEqual(counter, 3)
-			}
+
+            targetQueue!.sync {
+
+                let finalCounter = counter
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
+                    timePassesAfterUnsubscription.fulfill()
+                    XCTAssertEqual(counter, finalCounter)
+                }
+            }
 		}
 		
 		waitForExpectations(timeout: 3)
