@@ -66,7 +66,7 @@ public func __allTests() -> [XCTestCaseEntry] {
         testCase(BotTests.__allTests),
         testCase(LimiterTests.__allTests),
         testCase(MethodsTests.__allTests),
-        testCase(ReceiverTests.__allTests),
+        testCase(SendMessageEncodingTest.__allTests),
         testCase(ToolsTests.__allTests),
     ]
 }
