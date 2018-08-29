@@ -24,7 +24,7 @@ final class APIMock: API {
 		t_onSend(request)
 
         let finalizer: (Result<T>) -> Void = {
-            [t_queue] result in t_queue.async { onComplete(result) }
+            [t_queue] result in t_queue.asyncAfter(seconds: 0.1) { onComplete(result) }
         }
 
         guard let preparedResult = t_storage[request.url!] else {
