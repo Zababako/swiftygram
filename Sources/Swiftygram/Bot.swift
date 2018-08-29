@@ -99,17 +99,13 @@ public final class Bot {
 
         let token = UUID().uuidString
 
-        queue.async {
-            self.subscriptionsRegistry[token] = handler
-        }
+        queue.async { self.subscriptionsRegistry[token] = handler }
 
         return token
     }
     
     public func unsubscribeFromUpdates(token: SubscriptionToken) {
-        queue.async {
-            self.subscriptionsRegistry[token] = nil
-        }
+        queue.async { self.subscriptionsRegistry[token] = nil }
     }
 
     public func getMe(onComplete: @escaping (Result<User>) -> Void) {
@@ -214,21 +210,21 @@ public final class Bot {
                 queue.async {
                     result
                         .onSuccess {
-                        updates in
+                            updates in
 
-                        if let last = updates.last {
-                            self.offset = last.updateId.next
-                        }
+                            if let last = updates.last {
+                                self.offset = last.updateId.next
+                            }
 
-                        self.propagateUpdateResult(result)
-                    }
-                    .onFailure {
-                        error in
-
-                        if error.isNotTimeout {
                             self.propagateUpdateResult(result)
                         }
-                    }
+                        .onFailure {
+                            error in
+
+                            if error.isNotTimeout {
+                                self.propagateUpdateResult(result)
+                            }
+                        }
 
                     guard self.isUpdating else { return }
 
