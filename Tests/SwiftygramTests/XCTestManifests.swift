@@ -43,7 +43,7 @@ extension MethodsTests {
     ]
 }
 
-extension ReceiverTests {
+extension SendMessageEncodingTest {
     static let __allTests = [
         ("test_Receiver_with_channelName_is_encoded_into_string", test_Receiver_with_channelName_is_encoded_into_string),
         ("test_Receiver_with_id_is_encoded_into_number", test_Receiver_with_id_is_encoded_into_number),

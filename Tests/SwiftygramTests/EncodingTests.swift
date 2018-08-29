@@ -7,9 +7,13 @@ import XCTest
 
 @testable import Swiftygram
 
-final class ReceiverTests: XCTestCase {
+final class SendMessageEncodingTest: XCTestCase {
 
-    let encoder = JSONEncoder()
+    let encoder: JSONEncoder = {
+        var encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        return encoder
+    }()
 
     func test_Receiver_with_id_is_encoded_into_number() throws {
 
@@ -20,7 +24,7 @@ final class ReceiverTests: XCTestCase {
 
         let resultString = String(data: data, encoding: .utf8)!
 
-        XCTAssert(resultString.contains("\"chatId\":3125"))
+        XCTAssert(resultString.contains("\"chat_id\":3125"))
     }
 
     func test_Receiver_with_channelName_is_encoded_into_string() throws {
@@ -32,6 +36,6 @@ final class ReceiverTests: XCTestCase {
 
         let resultString = String(data: data, encoding: .utf8)!
 
-        XCTAssert(resultString.contains("\"chatId\":\"@some_channel\""))
+        XCTAssert(resultString.contains("\"chat_id\":\"@some_channel\""))
     }
 }
