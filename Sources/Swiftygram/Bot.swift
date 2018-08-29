@@ -38,12 +38,18 @@ public struct Factory {
     }
 }
 
-public typealias SubscriptionToken = String
+public protocol SubscriptionHolder: AnyObject {}
 
 public final class Bot {
 
 
     // MARK: - Private properties
+
+    private class Holder: SubscriptionHolder {
+        deinit {
+            print("Holder got deallocated")
+        }
+    }
 
     private let api:   API
     private let token: Token
@@ -52,8 +58,9 @@ public final class Bot {
 
     private var errorRecoveryTime: TimeInterval = 10
     private var offset: Update.ID?
-    private var subscriptionsRegistry: [SubscriptionToken : (Result<[Update]>) -> Void] = [:] {
+    private var subscriptionsRegistry: [WeakBox<Holder> : (Result<[Update]>) -> Void] = [:] {
         didSet {
+            subscriptionsRegistry = subscriptionsRegistry.filter { (box, _) in box.value != nil }
             isUpdating = !subscriptionsRegistry.isEmpty
         }
     }
@@ -95,17 +102,15 @@ public final class Bot {
         queue.async { self.errorRecoveryTime = time }
     }
 
-    public func subscribeToUpdates(handler: @escaping (Result<[Update]>) -> Void) -> SubscriptionToken {
+    public func subscribeToUpdates(handler: @escaping (Result<[Update]>) -> Void) -> SubscriptionHolder {
 
-        let token = UUID().uuidString
+        let holder = Holder()
 
-        queue.async { self.subscriptionsRegistry[token] = handler }
+        queue.async {
+            self.subscriptionsRegistry[WeakBox(holder)] = handler
+        }
 
-        return token
-    }
-    
-    public func unsubscribeFromUpdates(token: SubscriptionToken) {
-        queue.async { self.subscriptionsRegistry[token] = nil }
+        return holder
     }
 
     public func getMe(onComplete: @escaping (Result<User>) -> Void) {
@@ -183,6 +188,8 @@ public final class Bot {
     // MARK: - Private Methods
 
     private func propagateUpdateResult(_ result: Result<[Update]>) {
+
+        subscriptionsRegistry = subscriptionsRegistry.filter { (box, _) in box.value != nil }
 
         subscriptionsRegistry.forEach { (_, handler) in
             delegateQueue.async { handler(result) }

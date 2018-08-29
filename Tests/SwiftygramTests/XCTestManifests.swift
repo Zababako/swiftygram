@@ -21,8 +21,8 @@ extension BotTests {
     static let __allTests = [
         ("test_On_each_update_bot_requests_update_after_the_last_one_received", test_On_each_update_bot_requests_update_after_the_last_one_received),
         ("test_Updates_are_requested_infinitely", test_Updates_are_requested_infinitely),
-        ("test_Updates_do_not_come_after_unsubscription", test_Updates_do_not_come_after_unsubscription),
         ("test_When_first_subscription_happens_updates_start", test_When_first_subscription_happens_updates_start),
+        ("test_When_last_holder_is_released_updates_stop", test_When_last_holder_is_released_updates_stop),
     ]
 }
 
