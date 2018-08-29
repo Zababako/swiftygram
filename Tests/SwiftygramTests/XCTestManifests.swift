@@ -21,8 +21,8 @@ extension BotTests {
     static let __allTests = [
         ("test_On_each_update_bot_requests_update_after_the_last_one_received", test_On_each_update_bot_requests_update_after_the_last_one_received),
         ("test_Updates_are_requested_infinitely", test_Updates_are_requested_infinitely),
-        ("test_When_first_subscription_happens_updates_start", test_When_first_subscription_happens_updates_start),
         ("test_Updates_do_not_come_after_unsubscription", test_Updates_do_not_come_after_unsubscription),
+        ("test_When_first_subscription_happens_updates_start", test_When_first_subscription_happens_updates_start),
     ]
 }
 
@@ -43,6 +43,13 @@ extension MethodsTests {
     ]
 }
 
+extension ReceiverTests {
+    static let __allTests = [
+        ("test_Receiver_with_channelName_is_encoded_into_string", test_Receiver_with_channelName_is_encoded_into_string),
+        ("test_Receiver_with_id_is_encoded_into_number", test_Receiver_with_id_is_encoded_into_number),
+    ]
+}
+
 extension ToolsTests {
     static let __allTests = [
         ("test_Environmental_variable_is_loaded_from_environment", test_Environmental_variable_is_loaded_from_environment),
@@ -59,6 +66,7 @@ public func __allTests() -> [XCTestCaseEntry] {
         testCase(BotTests.__allTests),
         testCase(LimiterTests.__allTests),
         testCase(MethodsTests.__allTests),
+        testCase(ReceiverTests.__allTests),
         testCase(ToolsTests.__allTests),
     ]
 }
