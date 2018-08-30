@@ -29,6 +29,7 @@ matrix:
         - swift package resolve
         - swift package generate-xcodeproj
         - fastlane scan --destination 'platform=OS X,arch=x86_64' --code_coverage
+        - gem uninstall json '2.0.4' 
         - xcov
 after_success:
   - bash <(curl -s https://codecov.io/bash)
