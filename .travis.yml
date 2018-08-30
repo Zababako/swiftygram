@@ -22,8 +22,14 @@ matrix:
       name: "macOS"
       language: swift
       sudo: required
+      install:
+        - gem install xcov # For codecoverage
       script:
         - swift package update
         - swift test
+          # CodeCoverage report generation
+        - swift package generate-xcodeproj
+        - xcodebuild test -scheme Test -enableCodeCoverage YES
+        - xcov
 after_success:
   - bash <(curl -s https://codecov.io/bash)
