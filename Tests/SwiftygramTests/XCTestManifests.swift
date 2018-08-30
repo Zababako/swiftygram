@@ -58,7 +58,7 @@ extension ToolsTests {
     ]
 }
 
-#if !os(macOS)
+#if os(Linux)
 public func __allTests() -> [XCTestCaseEntry] {
     return [
         testCase(APIIntegrationTests.__allTests),
