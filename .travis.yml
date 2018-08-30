@@ -27,10 +27,8 @@ matrix:
         - gem install fastlane
       script:
         - swift package resolve
-          # CodeCoverage report generation (use "swift test" otherwise)
         - swift package generate-xcodeproj
         - fastlane scan --code_coverage
-          #- xcodebuild test -scheme Test -enableCodeCoverage YES
         - xcov
 after_success:
   - bash <(curl -s https://codecov.io/bash)
