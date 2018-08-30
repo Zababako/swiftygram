@@ -28,6 +28,15 @@ struct APIMethod {
             self.timeout        = timeout
             self.allowedUpdates = allowedUpdates
         }
+
+        // TODO: remove once convertToSnakeCase is implemented on Linux
+        //       https://bugs.swift.org/browse/SR-7180
+        enum CodingKeys: String, CodingKey {
+            case offset
+            case limit
+            case timeout
+            case allowedUpdates = "allowed_updates"
+        }
     }
 
     struct GetMe: Endpoint, Encodable {}
@@ -42,6 +51,18 @@ struct APIMethod {
         let disableNotification:   Bool?
         let replyToMessageId:      Message.ID?
         let replyMarkup:           ReplyMarkup?
+
+        // TODO: remove once convertToSnakeCase is implemented on Linux
+        //       https://bugs.swift.org/browse/SR-7180
+        enum CodingKeys: String, CodingKey {
+            case chatId                = "chat_id"
+            case text
+            case parseMode             = "parse_mode"
+            case disableWebPagePreview = "disable_web_page_preview"
+            case disableNotification   = "disable_notification"
+            case replyToMessageId      = "reply_to_message_id"
+            case replyMarkup           = "reply_markup"
+        }
     }
 
     struct SendDocument: Endpoint {
@@ -56,6 +77,19 @@ struct APIMethod {
         let disableNotification: Bool?
         let replyToMessageId:    Message.ID?
         let replyMarkup:         ReplyMarkup?
+
+        // TODO: remove once convertToSnakeCase is implemented on Linux
+        //       https://bugs.swift.org/browse/SR-7180
+        enum CodingKeys: String, CodingKey {
+            case chatId              = "chat_id"
+            case document
+            case thumb
+            case caption
+            case parseMode           = "parse_mode"
+            case disableNotification = "disable_notification"
+            case replyToMessageId    = "reply_to_message_id"
+            case replyMarkup         = "reply_markup"
+        }
     }
 }
 
@@ -123,6 +157,18 @@ public struct InlineKeyboardMarkup: Encodable {
             self.callbackGame                 = callbackGame
             self.pay                          = pay
         }
+
+        // TODO: remove once convertToSnakeCase is implemented on Linux
+        //       https://bugs.swift.org/browse/SR-7180
+        enum CodingKeys: String, CodingKey {
+            case text
+            case url
+            case callbackData                 = "callback_data"
+            case switchInlineQuery            = "switch_inline_query"
+            case switchInlineQueryCurrentChat = "switch_inline_query_current_chat"
+            case callbackGame                 = "callback_game"
+            case pay
+        }
     }
 }
 
@@ -143,6 +189,15 @@ public struct ReplyKeyboardMarkup: Encodable {
         self.resizeKeyboard  = resizeKeyboard
         self.oneTimeKeyboard = oneTimeKeyboard
         self.selective       = selective
+    }
+
+    // TODO: remove once convertToSnakeCase is implemented on Linux
+    //       https://bugs.swift.org/browse/SR-7180
+    enum CodingKeys: String, CodingKey {
+        case keyboard
+        case resizeKeyboard  = "resize_keyboard"
+        case oneTimeKeyboard = "one_time_keyboard"
+        case selective
     }
 }
 
@@ -172,10 +227,9 @@ public enum KeyboardButton: Encodable {
 
     private enum Keys: String, CodingKey {
         case text
-        case requestContact
-        case requestLocation
+        case requestContact  = "request_contact"
+        case requestLocation = "request_location"
     }
-
 }
 
 /// https://core.telegram.org/bots/api#replykeyboardremove
@@ -187,6 +241,13 @@ public struct ReplyKeyboardRemove: Encodable {
         self.removeKeyboard = removeKeyboard
         self.selective      = selective
     }
+
+    // TODO: remove once convertToSnakeCase is implemented on Linux
+    //       https://bugs.swift.org/browse/SR-7180
+    enum CodingKeys: String, CodingKey {
+        case removeKeyboard = "remove_keyboard"
+        case selective
+    }
 }
 
 /// https://core.telegram.org/bots/api#forcereply
@@ -197,6 +258,13 @@ public struct ForceReply: Encodable {
     public init(forceReply: Bool = true, selective: Bool? = nil) {
         self.forceReply = forceReply
         self.selective  = selective
+    }
+
+    // TODO: remove once convertToSnakeCase is implemented on Linux
+    //       https://bugs.swift.org/browse/SR-7180
+    enum CodingKeys: String, CodingKey {
+        case forceReply = "force_reply"
+        case selective
     }
 }
 
