@@ -59,10 +59,21 @@ extension ToolsTests {
 }
 
 #if os(macOS) // To make it compilable with 'fastlane scan' - for code coverage generation
-    public typealias XCTestCaseEntry = String
-    public func testCase(_ arg:Any) -> XCTestCaseEntry {
-        return ""
+public typealias XCTestCaseClosure = (XCTestCase) throws -> Void
+public typealias XCTestCaseEntry = (testCaseClass: XCTestCase.Type, allTests: [(String, XCTestCaseClosure)])
+public func testCase<T: XCTestCase>(_ allTests: [(String, (T) -> () -> Void)]) -> XCTestCaseEntry {
+    let tests: [(String, XCTestCaseClosure)] = allTests.map { ($0.0, test($0.1)) }
+    return (T.self, tests)
+}
+private func test<T: XCTestCase>(_ testFunc: @escaping (T) -> () throws -> Void) -> XCTestCaseClosure {
+    return { testCaseType in
+        guard let testCase = testCaseType as? T else {
+            fatalError("Attempt to invoke test on class \(T.self) with incompatible instance type \(type(of: testCaseType))")
+        }
+
+        try testFunc(testCase)()
     }
+}
 #endif
 
 #if !os(macOS)
