@@ -58,7 +58,14 @@ extension ToolsTests {
     ]
 }
 
-#if os(Linux)
+#if os(macOS) // To make it compilable with 'fastlane scan' - for code coverage generation
+    public typealias XCTestCaseEntry = String
+    public func testCase(_ arg:Any) -> XCTestCaseEntry {
+        return ""
+    }
+#endif
+
+#if !os(macOS)
 public func __allTests() -> [XCTestCaseEntry] {
     return [
         testCase(APIIntegrationTests.__allTests),
