@@ -42,12 +42,7 @@ private func prepareEnvVar(key: String, value: String) {
 
 private func prepareFile(key: String, value: String) {
 
-    guard let pwd = ProcessInfo.processInfo.environment["PWD"] else {
-        XCTFail("Failed to determine current path")
-        return
-    }
-
-    guard let testFileURL = URL(string: "file://\(pwd)/\(key)") else {
+    guard let testFileURL = URL(string: "file://\(FileManager.default.currentDirectoryPath)/\(key)") else {
         XCTFail("Failed to convert path to URL")
         return
     }
