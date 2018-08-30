@@ -5,6 +5,7 @@ env:
 matrix:
   include:
     - os: linux
+      name: "Linux"
       language: generic
       dist: trusty
       sudo: required
@@ -18,8 +19,11 @@ matrix:
         - swift test
 
     - os: osx
+      name: "macOS"
       language: swift
       sudo: required
       script:
         - swift package update
         - swift test
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
