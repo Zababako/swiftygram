@@ -23,13 +23,12 @@ matrix:
       language: swift
       sudo: required
       install:
-        - gem install xcov # For codecoverage
         - gem install fastlane
+        - gem install xcov # For codecoverage
       script:
         - swift package resolve
         - swift package generate-xcodeproj
         - fastlane scan --destination 'platform=OS X,arch=x86_64' --code_coverage
-        - bundle exec json
         - xcov
 after_success:
   - bash <(curl -s https://codecov.io/bash)
