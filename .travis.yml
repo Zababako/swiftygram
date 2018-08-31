@@ -30,4 +30,4 @@ matrix:
         - fastlane scan --destination 'platform=OS X,arch=x86_64' --code_coverage
         - xcov
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash) -J 'Swiftygram'
