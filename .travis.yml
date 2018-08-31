@@ -23,8 +23,7 @@ matrix:
       language: swift
       sudo: required
       install:
-        - gem install fastlane
-        - gem install xcov # For codecoverage
+        - bundle install # For codecoverage
       script:
         - swift package resolve
         - swift package generate-xcodeproj
