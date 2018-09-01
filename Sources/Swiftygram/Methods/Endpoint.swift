@@ -51,11 +51,9 @@ private let encoder: JSONEncoder = {
 extension RequestableObject where Self: DefinedObject, Self: Encodable {
 	
 	func request(for token: Token) throws -> URLRequest {
-		
-		guard let url = baseURLComponents(with: token, path: path).url else {
-            throw APIMethodError.baseUrlCompositionFailure
-        }
-		
+
+        let url = try baseURL(with: token, path: path)
+
 		var request = URLRequest(url: url)
 		request.httpMethod = "POST"
 		request.setValue("application/json", forHTTPHeaderField: "Content-Type")
