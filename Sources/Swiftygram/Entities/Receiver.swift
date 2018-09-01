@@ -30,11 +30,19 @@ public enum Receiver: Encodable, ExpressibleByStringLiteral, ExpressibleByIntege
         }
     }
 
-    var data: Data? {
+    func data() throws -> Data {
+
+        let possibleData: Data?
         switch self {
-        case .id(let id):            return "\(id)".data(using: .utf8, allowLossyConversion: false)
-        case .channelName(let name): return name.data(using: .utf8, allowLossyConversion: false)
+        case .id(let id):            possibleData = "\(id)".data(using: .utf8, allowLossyConversion: false)
+        case .channelName(let name): possibleData = name.data(using: .utf8, allowLossyConversion: false)
         }
+
+        guard let result = possibleData else {
+            throw APIMethodError.stringEncodingFailed(String(describing: self))
+        }
+
+        return result
     }
 
     static func normalizedChannelName(_ name: String) -> String {

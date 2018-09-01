@@ -86,40 +86,56 @@ extension APIMethod.SendDocument {
 
         switch document {
         case .reference(let fileId):
-            guard let fileIdEncoded = fileId.data(using: .utf8, allowLossyConversion: true) else {
-                throw APIMethodError.stringEncodingFailed(fileId)
-            }
-            multipartData.append(fileIdEncoded, withName: "document")
+            multipartData.append(
+                try fileId.utf8Encoded(),
+                withName: "document"
+            )
+
         case let .file(name, data):
-            multipartData.append(data, withName: "document", fileName: name, mimeType: "application/octet-stream")
+            multipartData.append(
+                data,
+                withName: "document",
+                fileName: name,
+                mimeType: "application/octet-stream"
+            )
         }
 
-        guard let receiverEncoded = chatId.data else {
-            throw APIMethodError.stringEncodingFailed(String(describing: chatId))
-        }
+        let receiverEncoded = try chatId.data()
         multipartData.append(receiverEncoded, withName: "chat_id")
 
         if let addedThumb = thumb {
             switch addedThumb {
             case .reference(let fileId):
-                guard let fileIdEncoded = fileId.data(using: .utf8, allowLossyConversion: true) else {
-                    throw APIMethodError.stringEncodingFailed(fileId)
-                }
-                multipartData.append(fileIdEncoded, withName: "thumb")
+                multipartData.append(
+                    try fileId.utf8Encoded(),
+                    withName: "thumb"
+                )
             case let .file(name, data):
                 multipartData.append(data, withName: "thumb", fileName: name, mimeType: "application/octet-stream")
             }
         }
 
         if let addedCaption = caption {
-            guard let captionEncoded = addedCaption.data(using: .utf8, allowLossyConversion: false) else {
-                throw APIMethodError.stringEncodingFailed(addedCaption)
-            }
-            multipartData.append(captionEncoded, withName: "caption")
+
+            multipartData.append(
+                try addedCaption.utf8Encoded(),
+                withName: "caption"
+            )
         }
 
         // TODO: add other arguments
 
         return multipartData
+    }
+}
+
+private extension String {
+
+    func utf8Encoded() throws -> Data {
+        if let encoded = data(using: .utf8, allowLossyConversion: false) {
+            return encoded
+        } else {
+            throw APIMethodError.stringEncodingFailed(self)
+        }
     }
 }
