@@ -110,15 +110,10 @@ public final class Bot {
     }
 
     public func getMe(onComplete: @escaping (Result<User>) -> Void) {
-
-        let handler = { result in self.delegateQueue.async { onComplete(result) } }
-
-        Result.action(handler: handler) {
-            api.send(
-                request: try APIMethod.GetMe().request(for: token),
-                onComplete: $0
-            )
-        }
+        call(
+            endpoint:   APIMethod.GetMe(),
+            onComplete: onComplete
+        )
     }
 
     public func send(
@@ -131,23 +126,18 @@ public final class Bot {
         replyMarkup:           ReplyMarkup? = nil,
         onComplete:            @escaping (Result<Message>) -> Void
     ) {
-
-        let handler = { result in self.delegateQueue.async { onComplete(result) } }
-
-        Result.action(handler: handler) {
-            api.send(
-                request: try APIMethod.SendMessage(
-                    chatId: 			   to,
-                    text: 				   message,
-                    parseMode: 			   parseMode,
-                    disableWebPagePreview: disableWebPagePreview,
-                    disableNotification:   disableNotification,
-                    replyToMessageId:      replyToMessageId,
-                    replyMarkup:           replyMarkup
-                ).request(for: token),
-                onComplete: $0
-            )
-        }
+        call(
+            endpoint: APIMethod.SendMessage(
+                chatId: 			   to,
+                text: 				   message,
+                parseMode: 			   parseMode,
+                disableWebPagePreview: disableWebPagePreview,
+                disableNotification:   disableNotification,
+                replyToMessageId:      replyToMessageId,
+                replyMarkup:           replyMarkup
+            ),
+            onComplete: onComplete
+        )
     }
 
     public func send(
@@ -161,27 +151,41 @@ public final class Bot {
         replyMarkup:         ReplyMarkup?    = nil,
         onComplete:          @escaping (Result<Message>) -> Void
     ) {
-        let handler = { result in self.delegateQueue.async { onComplete(result) } }
-
-        Result.action(handler: handler) {
-            api.send(
-                request: try APIMethod.SendDocument(
-                    chatId:              to,
-                    document:            document,
-                    thumb:               thumb,
-                    caption:             caption,
-                    parseMode:           parseMode,
-                    disableNotification: disableNotification,
-                    replyToMessageId:    replyToMessageId,
-                    replyMarkup:         replyMarkup
-                ).request(for: token),
-                onComplete: $0
-            )
-        }
+        call(
+            endpoint: APIMethod.SendDocument(
+                chatId:              to,
+                document:            document,
+                thumb:               thumb,
+                caption:             caption,
+                parseMode:           parseMode,
+                disableNotification: disableNotification,
+                replyToMessageId:    replyToMessageId,
+                replyMarkup:         replyMarkup
+            ),
+            onComplete: onComplete
+        )
     }
 
 
     // MARK: - Private Methods
+
+    private func call<Object: Decodable>( // TODO: make this method public, so the users could expand API on their side if needed
+        endpoint:   Endpoint,
+        onComplete: @escaping (Result<Object>) -> Void
+    ) {
+
+        let handler: (Result<Object>) -> Void = {
+            result in self.delegateQueue.async { onComplete(result) }
+        }
+
+        Result.action(handler: handler) {
+            (finalizer: @escaping (Result<Object>) -> Void) in
+            api.send(
+                request: try endpoint.request(for: token),
+                onComplete: finalizer
+            )
+        }
+    }
 
     private func propagateUpdateResult(_ result: Result<[Update]>) {
 
