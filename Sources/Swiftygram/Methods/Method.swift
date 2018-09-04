@@ -11,7 +11,7 @@ enum APIMethodError: Error {
 
 struct APIMethod {
 
-    struct GetUpdates: Endpoint, Encodable {
+    struct GetUpdates: Requestable, Encodable, Contentable, Locatable {
         let offset:         Update.ID?
         let limit:          Int?
         let timeout:        Int?
@@ -39,9 +39,9 @@ struct APIMethod {
         }
     }
 
-    struct GetMe: Endpoint, Encodable {}
+    struct GetMe: Requestable, Encodable, Contentable, Locatable {}
 
-    struct SendMessage: Endpoint, Encodable {
+    struct SendMessage: Requestable, Encodable, Contentable, Locatable {
 
         let chatId: Receiver
         let text:   String
@@ -65,7 +65,7 @@ struct APIMethod {
         }
     }
 
-    struct SendDocument: Endpoint {
+    struct SendDocument: Requestable, Contentable, Locatable {
 
         let chatId:   Receiver
         let document: DocumentToSend
@@ -77,19 +77,6 @@ struct APIMethod {
         let disableNotification: Bool?
         let replyToMessageId:    Message.ID?
         let replyMarkup:         ReplyMarkup?
-
-        // TODO: remove once convertToSnakeCase is implemented on Linux
-        //       https://bugs.swift.org/browse/SR-7180
-        enum CodingKeys: String, CodingKey {
-            case chatId              = "chat_id"
-            case document
-            case thumb
-            case caption
-            case parseMode           = "parse_mode"
-            case disableNotification = "disable_notification"
-            case replyToMessageId    = "reply_to_message_id"
-            case replyMarkup         = "reply_markup"
-        }
     }
 }
 

@@ -7,77 +7,85 @@
 
 import Foundation
 
-typealias Endpoint = RequestableObject & DefinedObject
 
-protocol RequestableObject {
+/// Protocol that you need to conform to if you need to expand API coverage
+///
+/// There is default implementation for entities that already
+/// conform to `Locatable` and `Contentable` protocols
+public protocol Requestable {
 	func request(for token: Token) throws -> URLRequest
 }
 
-protocol DefinedObject {
+/// URL path to endpoint (e.g. "getUpdates", "sendMessage", "getMe")
+///
+/// Default implementation of this protocol uses Self name with lowercased first letter
+public protocol Locatable {
 	var path: String { get }
 }
 
-extension DefinedObject {
-	var path: String {
-		let name = String(describing: type(of: self))
-		return String(name.first!).lowercased() + name.dropFirst()
-	}
+/// Enum defining value of a `Content-type` in associated request
+public enum Content {
+    case json(body: Data)
+    case multipart(boundary: String, body: Data)
 }
 
-/// https://core.telegram.org/bots/api#making-requests
-private func baseURLComponents(with token: Token, path: String) -> URLComponents {
-
-    var urlComponents = URLComponents()
-    urlComponents.scheme             = "https"
-    urlComponents.host               = "api.telegram.org"
-    urlComponents.percentEncodedPath = "/bot\(token)/\(path)"
-
-    return urlComponents
+/// Protocol for entities that know how they want to be sent
+///
+/// There is a default implementation for `Encodable` entities
+public protocol Contentable {
+    func content() throws -> Content
 }
 
-private func baseURL(with token: Token, path: String) throws -> URL {
-    guard let url = baseURLComponents(with: token, path: path).url else {
-        throw APIMethodError.baseUrlCompositionFailure
+
+// Mark: - Default implementations
+
+public extension Locatable {
+    var path: String {
+        let name = String(describing: type(of: self))
+        return String(name.first!).lowercased() + name.dropFirst()
     }
-    return url
 }
 
 private let encoder: JSONEncoder = {
-	let encoder = JSONEncoder()
-	encoder.keyEncodingStrategy = .convertToSnakeCase
-	return encoder
+    let encoder = JSONEncoder()
+    encoder.keyEncodingStrategy = .convertToSnakeCase
+    return encoder
 }()
 
-extension RequestableObject where Self: DefinedObject, Self: Encodable {
-	
-	func request(for token: Token) throws -> URLRequest {
+public extension Contentable where Self: Encodable {
+    func content() throws -> Content {
+        return .json(body: try encoder.encode(self))
+    }
+}
+
+public extension Requestable where Self: Contentable, Self: Locatable {
+
+    public func request(for token: Token) throws -> URLRequest {
 
         let url = try baseURL(with: token, path: path)
 
-		var request = URLRequest(url: url)
-		request.httpMethod = "POST"
-		request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-		
-		let data = try encoder.encode(self)
-		request.httpBody = data
-		
-		return request
-	}
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        switch try content() {
+        case let .json(body):
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = body
+
+        case let .multipart(boundary, body):
+            request.setValue("multipart/form-data; boundary=\"\(boundary)\"", forHTTPHeaderField: "Content-Type")
+            request.httpBody = body
+        }
+
+        return request
+    }
 }
 
 extension APIMethod.SendDocument {
 
-    func request(for token: Token) throws -> URLRequest {
-
-        let url = try baseURL(with: token, path: path)
+    func content() throws -> Content {
         let multipartsData = try multiparts()
-		
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("multipart/form-data; boundary=\"\(multipartsData.boundary)\"", forHTTPHeaderField: "Content-Type")
-		
-        request.httpBody = try multipartsData.encode()
-        return request
+        return .multipart(boundary: multipartsData.boundary, body: try multipartsData.encode())
     }
 
     private func multiparts() throws -> MultipartFormData {
@@ -129,6 +137,9 @@ extension APIMethod.SendDocument {
     }
 }
 
+
+// MARK: - Private handlers
+
 private extension String {
 
     func utf8Encoded() throws -> Data {
@@ -139,3 +150,22 @@ private extension String {
         }
     }
 }
+
+/// https://core.telegram.org/bots/api#making-requests
+private func baseURLComponents(with token: Token, path: String) -> URLComponents {
+
+    var urlComponents = URLComponents()
+    urlComponents.scheme             = "https"
+    urlComponents.host               = "api.telegram.org"
+    urlComponents.percentEncodedPath = "/bot\(token)/\(path)"
+
+    return urlComponents
+}
+
+private func baseURL(with token: Token, path: String) throws -> URL {
+    guard let url = baseURLComponents(with: token, path: path).url else {
+        throw APIMethodError.baseUrlCompositionFailure
+    }
+    return url
+}
+

@@ -109,6 +109,30 @@ public final class Bot {
         return holder
     }
 
+    /// Generic method to call endpoints that were not defined in this project
+    ///
+	/// See discussion in `Requestable`
+    public func call<Object: Decodable>(
+        endpoint:   Requestable,
+        onComplete: @escaping (Result<Object>) -> Void
+    ) {
+
+        let handler: (Result<Object>) -> Void = {
+            result in self.delegateQueue.async { onComplete(result) }
+        }
+
+        Result.action(handler: handler) {
+            (finalizer: @escaping (Result<Object>) -> Void) in
+            api.send(
+                request: try endpoint.request(for: token),
+                onComplete: finalizer
+            )
+        }
+    }
+
+
+    // MARK: - Bot - Concrete Methods
+
     public func getMe(onComplete: @escaping (Result<User>) -> Void) {
         call(
             endpoint:   APIMethod.GetMe(),
@@ -168,24 +192,6 @@ public final class Bot {
 
 
     // MARK: - Private Methods
-
-    private func call<Object: Decodable>( // TODO: make this method public, so the users could expand API on their side if needed
-        endpoint:   Endpoint,
-        onComplete: @escaping (Result<Object>) -> Void
-    ) {
-
-        let handler: (Result<Object>) -> Void = {
-            result in self.delegateQueue.async { onComplete(result) }
-        }
-
-        Result.action(handler: handler) {
-            (finalizer: @escaping (Result<Object>) -> Void) in
-            api.send(
-                request: try endpoint.request(for: token),
-                onComplete: finalizer
-            )
-        }
-    }
 
     private func propagateUpdateResult(_ result: Result<[Update]>) {
 
