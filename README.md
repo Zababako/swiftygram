@@ -7,8 +7,8 @@ A lightweight Telegram Bot API client in Swift.
 # What this project is about
 
 This is a Swift wrapper for [Telegram Bot API](https://core.telegram.org/bots/api). 
-It's intended for people who want to write a bot, but don't want a hassle of writing
-proper requests formating, responses parsing and maping into meaningful Swift structures. 
+It\`s intended for people who want to write a bot, but don\`t want a hassle of writing
+proper requests formating, responses parsing and mapping into meaningful Swift structures. 
 This project is built completely on language features and has no dependencies. 
 
 ## Benefits
@@ -20,14 +20,14 @@ This project is built completely on language features and has no dependencies.
 
 # What this project is not about
 
-SwiftygramBot doesn't have any assumptions on how your bot business logic should work. 
-There is no routing, errors or commands handling.
+SwiftygramBot doesn\`t make any assumptions on how your bot business logic should work. 
+There is no routing, no errors or commands handling.
 
 
 # Inspired by
 
 This project was heavily inspired by this awesome projects, but caused by certain 
-their characteristics that didn't fit authors' purpose: 
+their characteristics that didn\`t fit authors\` purpose: 
 - [Zmeyc/Telegram-bot-swift](https://github.com/zmeyc/telegram-bot-swift)
 - [ShaneQi/ZEGBot](https://github.com/ShaneQi/ZEGBot)
 - [givip/Telegrammer](https://github.com/givip/Telegrammer)
