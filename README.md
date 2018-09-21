@@ -24,6 +24,15 @@ A lightweight Telegram Bot API client in Swift.
 
 // TODO
 
+# How to expand (Method you want to use is not represented in a wrapper)
+
+// TODO
+
+# TODO
+
+- [ ] Flesh out Readme sections
+- [ ] Generate Methods structures from TelegramBot API doc
+- [ ] Consider updates obtaining through webhooks 
 
 
 
